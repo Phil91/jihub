@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "jihub.Worker", "jihub.Worker\jihub.Worker.csproj", "{1B1550CA-A88A-4E99-B375-983E1BE2338E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "jihub.Jira", "jihub.Jira\jihub.Jira.csproj", "{5B14BBC5-FEC5-4886-8E16-FB055E37E9A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "jihub.Github", "jihub.Github\jihub.Github.csproj", "{9B32EF17-9BA9-42C3-872B-1061F3562245}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1B1550CA-A88A-4E99-B375-983E1BE2338E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B1550CA-A88A-4E99-B375-983E1BE2338E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B1550CA-A88A-4E99-B375-983E1BE2338E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B1550CA-A88A-4E99-B375-983E1BE2338E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B14BBC5-FEC5-4886-8E16-FB055E37E9A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B14BBC5-FEC5-4886-8E16-FB055E37E9A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B14BBC5-FEC5-4886-8E16-FB055E37E9A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B14BBC5-FEC5-4886-8E16-FB055E37E9A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B32EF17-9BA9-42C3-872B-1061F3562245}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B32EF17-9BA9-42C3-872B-1061F3562245}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B32EF17-9BA9-42C3-872B-1061F3562245}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B32EF17-9BA9-42C3-872B-1061F3562245}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
