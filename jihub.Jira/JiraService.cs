@@ -39,4 +39,16 @@ public class JiraService : IJiraService
         _logger.LogInformation("Received {Count} Jira Issues", result.Issues.Count());
         return result.Issues;
     }
+
+    public async Task<MemoryStream> GetAttachmentAsync(string url, CancellationToken cts)
+    {
+        var queryPath = url.Replace(_httpClient.BaseAddress!.PathAndQuery, string.Empty, StringComparison.CurrentCultureIgnoreCase);
+        var stream = await _httpClient.GetStreamAsync(queryPath, cts).ConfigureAwait(false);
+        var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream, cts);
+
+        // Reset the memory stream position to the beginning
+        memoryStream.Position = 0;
+        return memoryStream;
+    }
 }

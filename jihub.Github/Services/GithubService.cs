@@ -125,4 +125,26 @@ public class GithubService : IGithubService
 
         await Task.WhenAll(tasks);
     }
+
+    public async Task<GithubAsset> CreateAttachmentAsync(string owner, string repo, MemoryStream memoryStream, string name, CancellationToken cts)
+    {
+        var requestContent = new MultipartFormDataContent();
+        requestContent.Add(new StreamContent(memoryStream), name.Split(".")[0], name);
+
+        var response = await _httpClient.PostAsync($"{owner}/{repo}/releases/1/assets", requestContent);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new("Asset creation failed");
+        }
+        
+        var content = await response.Content.ReadAsStringAsync(cts);
+        var asset = JsonSerializer.Deserialize<GithubAsset>(content);
+        if (asset == null)
+        {
+            throw new("Couldn't parse Github Asset");
+        }
+
+        return asset;
+    }
 }
