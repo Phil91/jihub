@@ -3,11 +3,13 @@
     <PropertyGroup>
         <AssemblyName>jihub.Worker</AssemblyName>
         <RootNamespace>jihub.Worker</RootNamespace>
-        <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <OutputType>Exe</OutputType>
         <GenerateDocumentationFile>True</GenerateDocumentationFile>
+        <LangVersion>default</LangVersion>
+        <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+        <UserSecretsId>55bd02e1-0d9e-4180-aa3e-2f1c38168e8b</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>

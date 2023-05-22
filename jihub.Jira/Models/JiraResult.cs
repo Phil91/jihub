@@ -25,7 +25,7 @@ public record IssueFields
     [property: JsonPropertyName("customfield_10028")]
     double? StoryPoints,
     [property: JsonPropertyName("customfield_10020")]
-    IEnumerable<string> Sprints
+    IEnumerable<string>? Sprints
 );
 
 public record IssueType(string Name, string Description);
