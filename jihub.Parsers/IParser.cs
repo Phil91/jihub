@@ -6,7 +6,7 @@ namespace jihub.Parsers;
 
 public interface IParser<in T> where T : class
 {
-    Task<IEnumerable<GitHubIssue>> ConvertIssues(
+    Task<IEnumerable<CreateGitHubIssue>> ConvertIssues(
         IEnumerable<T> issues,
         JihubOptions options,
         List<GitHubLabel> labels,

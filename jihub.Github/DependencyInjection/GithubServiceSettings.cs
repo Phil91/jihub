@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace jihub.Github.DependencyInjection;
 
 /// <summary>
-/// Settings used in business logic concerning connectors.
+/// Settings used for github.
 /// </summary>
 public class GithubServiceSettings
 {

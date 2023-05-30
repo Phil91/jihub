@@ -1,10 +1,13 @@
+using System.Runtime.InteropServices.ComTypes;
 using System.Text.RegularExpressions;
 using jihub.Base;
 using jihub.Github.Models;
 using jihub.Github.Services;
 using jihub.Jira;
 using jihub.Jira.Models;
+using jihub.Parsers.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace jihub.Parsers.Jira;
 
@@ -14,15 +17,17 @@ public class JiraParser : IJiraParser
     private readonly ILogger<JiraParser> _logger;
     private readonly IGithubService _githubService;
     private readonly IJiraService _jiraService;
+    private readonly JiraParserOptions _options;
 
-    public JiraParser(ILogger<JiraParser> logger, IGithubService githubService, IJiraService jiraService)
+    public JiraParser(ILogger<JiraParser> logger, IGithubService githubService, IJiraService jiraService, IOptions<JiraParserOptions> options)
     {
         _logger = logger;
         _githubService = githubService;
         _jiraService = jiraService;
+        _options = options.Value;
     }
 
-    public async Task<IEnumerable<GitHubIssue>> ConvertIssues(IEnumerable<JiraIssue> jiraIssues, JihubOptions options, List<GitHubLabel> labels, List<GitHubMilestone> milestones, CancellationToken cts)
+    public async Task<IEnumerable<CreateGitHubIssue>> ConvertIssues(IEnumerable<JiraIssue> jiraIssues, JihubOptions options, List<GitHubLabel> labels, List<GitHubMilestone> milestones, CancellationToken cts)
     {
         _logger.LogInformation("converting {Count} jira issues to github issues", jiraIssues.Count());
     
@@ -38,7 +43,7 @@ public class JiraParser : IJiraParser
         return issues;
     }
     
-    private async Task<GitHubIssue> CreateGithubIssue(JiraIssue jiraIssue, JihubOptions options, List<GitHubLabel> existingLabels, List<GitHubMilestone> milestones, CancellationToken cts)
+    private async Task<CreateGitHubIssue> CreateGithubIssue(JiraIssue jiraIssue, JihubOptions options, List<GitHubLabel> existingLabels, List<GitHubMilestone> milestones, CancellationToken cts)
     {
         var description = jiraIssue.Fields.Description.Replace("\r\n", "<br />").Replace(@"\u{a0}", "");
         var matches = _regex.Matches(description);
@@ -98,14 +103,16 @@ public class JiraParser : IJiraParser
             .DistinctBy(l => l.Name);
         var createdLabels = await _githubService.CreateLabelsAsync(options.Owner, options.Repo, missingLabels, cts).ConfigureAwait(false);
         existingLabels.AddRange(createdLabels);
+        var state = _options.StateMapping.FirstOrDefault(kvp => kvp.Value.Contains(jiraIssue.Fields.Status.Name)).Key;
 
         int? milestoneNumber = null;
         if (!jiraIssue.Fields.FixVersions.Any())
         {
-            return new GitHubIssue(
+            return new CreateGitHubIssue(
                 $"{jiraIssue.Fields.Summary} (ext: {jiraIssue.Key})",
                 description,
                 milestoneNumber,
+                state,
                 labels.Select(x => x.Name)
             );
         }
@@ -121,10 +128,11 @@ public class JiraParser : IJiraParser
 
         milestoneNumber = milestone.Number;
 
-        return new GitHubIssue(
+        return new CreateGitHubIssue(
             $"{jiraIssue.Fields.Summary} (ext: {jiraIssue.Key})",
             description,
             milestoneNumber,
+            state,
             labels.Select(x => x.Name)
         );
     }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace jihub.Jira.DependencyInjection;
 
 /// <summary>
-/// Settings used in business logic concerning connectors.
+/// Settings used for jira
 /// </summary>
 public class JiraServiceSettings
 {

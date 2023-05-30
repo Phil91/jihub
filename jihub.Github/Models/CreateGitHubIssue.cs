@@ -2,13 +2,12 @@ using System.Text.Json.Serialization;
 
 namespace jihub.Github.Models;
 
-public record GitHubIssue
+public record CreateGitHubIssue
 (
-    int Id,
-    int Number,
     string Title,
     string? Body,
-    GitHubMilestone Milestone,
+    int? Milestone,
+    [property: JsonIgnore]
     GithubState State,
-    IEnumerable<GitHubLabel> Labels
+    IEnumerable<string> Labels
 );
