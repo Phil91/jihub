@@ -2,7 +2,9 @@ using System.Net;
 using jihub.Github.Models;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Web;
 
 namespace jihub.Github.Services;
@@ -100,23 +102,36 @@ public class GithubService : IGithubService
         throw new($"Couldn't create milestone: {name}");
     }
 
-    public async Task CreateIssuesAsync(string owner, string repo, IEnumerable<GitHubIssue> issues, CancellationToken cts)
+    public async Task CreateIssuesAsync(string owner, string repo, IEnumerable<CreateGitHubIssue> issues, CancellationToken cts)
     {
-        async Task CreateIssue(GitHubIssue issue)
+        async Task CreateIssue(CreateGitHubIssue issue)
         {
             var url = $"repos/{owner}/{repo}/issues";
         
             _logger.LogInformation("Creating issue: {issue}", issue.Title);
             var result = await _httpClient.PostAsJsonAsync(url, issue, Options, cts).ConfigureAwait(false);
-            if (result is null)
-            {
-                throw new("Jira request failed");
-            }
-
             if (!result.IsSuccessStatusCode)
             {
                 _logger.LogError("Couldn't create issue: {label}", issue.Title);
-                throw new($"Couldn't create issue: {issue.Title}");
+                return;
+            }
+
+            var response = await result.Content.ReadFromJsonAsync<GitHubIssue>(Options, cts).ConfigureAwait(false);
+            if (response == null)
+            {
+                _logger.LogError("State of issue {IssueId} could not be changed", issue.Title);
+                return;
+            }
+
+            if (issue.State == GithubState.Closed)
+            {
+                var updateData = new UpdateGitHubIssue(issue.Title, issue.Body, issue.Milestone, issue.State, issue.Labels);
+                var jsonContent = new StringContent(JsonSerializer.Serialize(updateData), Encoding.UTF8, "application/json");
+                var updateResult = await _httpClient.PatchAsync($"{url}/{response.Number}", jsonContent, cts).ConfigureAwait(false);
+                if (!updateResult.IsSuccessStatusCode)
+                {
+                    _logger.LogError("State of issue {IssueId} could not be changed", issue.Title);
+                }
             }
         }
 

@@ -23,6 +23,7 @@ using jihub;
 using jihub.Base;
 using jihub.Github.DependencyInjection;
 using jihub.Jira.DependencyInjection;
+using jihub.Parsers.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -37,6 +38,7 @@ try
                 .AddTransient<Worker>()
                 .AddJiraService(hostContext.Configuration.GetSection("Jira"))
                 .AddGithubService(hostContext.Configuration.GetSection("Github"))
+                .AddParsers(hostContext.Configuration.GetSection("Parsers"))
                 .AddLogging();
         })
         .Build();
