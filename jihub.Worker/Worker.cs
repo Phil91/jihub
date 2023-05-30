@@ -45,8 +45,12 @@ public class Worker
             var parser = scope.ServiceProvider.GetRequiredService<IJiraParser>();
 
             var jiraIssues = await jiraService.GetAsync(options.SearchQuery, options.MaxResults, cts).ConfigureAwait(false);
-            var githubInformation = await githubService.GetMilestonesAndLabelsAsync(options.Owner, options.Repo, cts).ConfigureAwait(false);
-            var convertedIssues = await parser.ConvertIssues(jiraIssues, options, githubInformation.Labels.ToList(), githubInformation.Milestones.ToList(), cts).ConfigureAwait(false);
+            var githubInformation = await githubService.GetRepoInformation(options.Owner, options.Repo, cts).ConfigureAwait(false);
+
+            var excludedJiraIssues = jiraIssues.Where(x => githubInformation.Issues.Any(i => i.Title.Contains($"(ext: {x.Key})")));
+            _logger.LogInformation("The following issues were not imported because they are already available in Github {Issues}", string.Join(",", excludedJiraIssues.Select(x => x.Key)));
+
+            var convertedIssues = await parser.ConvertIssues(jiraIssues.Except(excludedJiraIssues), options, githubInformation.Labels.ToList(), githubInformation.Milestones.ToList(), cts).ConfigureAwait(false);
             await githubService.CreateIssuesAsync(options.Owner, options.Repo, convertedIssues, cts).ConfigureAwait(false);
         }
         catch (Exception ex)
