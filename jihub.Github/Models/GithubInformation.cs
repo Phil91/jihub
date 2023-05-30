@@ -4,8 +4,20 @@ namespace jihub.Github.Models;
 
 public record GitHubInformation
 (
+    IEnumerable<GitHubIssue> Issues,
     IEnumerable<GitHubLabel> Labels,
     IEnumerable<GitHubMilestone> Milestones
+);
+
+public record GitHubIssue
+(
+    int Id,
+    int Number,
+    string Title,
+    string? Body,
+    GitHubMilestone Milestone,
+    GithubState State,
+    IEnumerable<GitHubLabel> Labels
 );
 
 public record GitHubLabel

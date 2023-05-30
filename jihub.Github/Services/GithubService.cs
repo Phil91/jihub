@@ -21,12 +21,14 @@ public class GithubService : IGithubService
         _httpClient = httpClientFactory.CreateClient(nameof(GithubService));
     }
     
-    public async Task<GitHubInformation> GetMilestonesAndLabelsAsync(string owner, string repo, CancellationToken cts)
+    public async Task<GitHubInformation> GetRepoInformation(string owner, string repo, CancellationToken cts)
     {
+        var issues = await Get<GitHubIssue>("issues", owner, repo, cts).ConfigureAwait(false);
         var labels = await Get<GitHubLabel>("labels", owner, repo, cts).ConfigureAwait(false);
         var milestones = await Get<GitHubMilestone>("milestones", owner, repo, cts).ConfigureAwait(false);
 
         return new GitHubInformation(
+            issues,
             labels,
             milestones);
     }
