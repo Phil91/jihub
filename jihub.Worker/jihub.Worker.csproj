@@ -21,6 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\jihub.Base\jihub.Base.csproj" />
       <ProjectReference Include="..\jihub.Github\jihub.Github.csproj" />
       <ProjectReference Include="..\jihub.Jira\jihub.Jira.csproj" />
     </ItemGroup>

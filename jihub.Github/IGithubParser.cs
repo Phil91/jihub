@@ -1,3 +1,4 @@
+using jihub.Base;
 using jihub.Github.Models;
 using jihub.Jira.Models;
 
@@ -7,8 +8,7 @@ public interface IGithubParser
 {
     Task<IEnumerable<GitHubIssue>> ConvertIssues(
         IEnumerable<JiraIssue> jiraIssues,
-        string owner,
-        string repo,
+        JihubOptions options,
         List<GitHubLabel> labels,
         List<GitHubMilestone> milestones,
         CancellationToken cts);

@@ -25,6 +25,10 @@ public static class JiraServiceCollectionExtension
             c.BaseAddress = new Uri($"{baseUrl}rest/api/2/search");
             c.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", auth);
         });
+        services.AddHttpClient($"{nameof(JiraService)}Download", c =>
+        {
+            c.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", auth);
+        });
 
         services
             .AddTransient<IJiraService, JiraService>();

@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using jihub.Base;
 using jihub.Github.Models;
 using jihub.Github.Services;
 using jihub.Jira;
@@ -21,13 +22,12 @@ public class GithubParser : IGithubParser
         _jiraService = jiraService;
     }
 
-    public async Task<IEnumerable<GitHubIssue>> ConvertIssues(IEnumerable<JiraIssue> jiraIssues, string owner, string repo, List<GitHubLabel> labels, List<GitHubMilestone> milestones, CancellationToken cts)
+    public async Task<IEnumerable<GitHubIssue>> ConvertIssues(IEnumerable<JiraIssue> jiraIssues, JihubOptions options, List<GitHubLabel> labels, List<GitHubMilestone> milestones, CancellationToken cts)
     {
         _logger.LogInformation("converting {Count} jira issues to github issues", jiraIssues.Count());
     
-        // spawn tasks that run in parallel
         var tasks = jiraIssues
-            .Select(issue => CreateGithubIssue(issue, owner, repo, labels, milestones, cts))
+            .Select(issue => CreateGithubIssue(issue, options, labels, milestones, cts))
             .ToList();
 
         await Task.WhenAll(tasks);
@@ -38,23 +38,28 @@ public class GithubParser : IGithubParser
         return issues;
     }
     
-    private async Task<GitHubIssue> CreateGithubIssue(JiraIssue jiraIssue, string owner, string repo, List<GitHubLabel> existingLabels, List<GitHubMilestone> milestones, CancellationToken cts)
+    private async Task<GitHubIssue> CreateGithubIssue(JiraIssue jiraIssue, JihubOptions options, List<GitHubLabel> existingLabels, List<GitHubMilestone> milestones, CancellationToken cts)
     {
         var description = jiraIssue.Fields.Description.Replace("\r\n", "<br />").Replace(@"\u{a0}", "");
         var matches = _regex.Matches(description);
 
         var linkedAttachments = new List<ValueTuple<string, GithubAsset>>();
-        foreach (Match match in matches)
+        foreach (var groups in matches.Select(m => m.Groups))
         {
-            var url = match.Groups[1].Value;
-            linkedAttachments.Add(new (match.Groups[0].Value, new GithubAsset(url, url.Split("/").Last())));
-            // TODO (PS): As soon as github supports uploading a asset to an issue apply code below 
-            // var memoryStream = await _jiraService.GetAttachmentAsync(url, cts).ConfigureAwait(false);
-            // var asset = await _githubService.CreateAttachmentAsync(owner, repo, memoryStream, url.Split("/").Last(), cts).ConfigureAwait(false);
-            // linkedAttachments.Add(new (match.Groups[0].Value, asset));
+            var url = groups[1].Value;
+            if (!options.Export)
+            {
+                linkedAttachments.Add(new (groups[0].Value, new GithubAsset(url, url.Split("/").Last())));
+                continue;
+            }
+
+            // TODO: As soon as github supports uploading a asset to an issue switch to that 
+            var fileData = await _jiraService.GetAttachmentAsync(url, cts).ConfigureAwait(false);
+            var asset = await _githubService.CreateAttachmentAsync(options.ImportOwner!, options.UploadRepo!, fileData, url.Split("/").Last(), cts).ConfigureAwait(false);
+            linkedAttachments.Add(new (groups[0].Value, asset));
         }
 
-        description = _regex.Replace(description, x => ReplaceMatch(x, linkedAttachments));
+        description = _regex.Replace(description, x => ReplaceMatch(x, linkedAttachments, options.AuthorizedLink));
 
         var components = jiraIssue.Fields.Components.Any() ? string.Join(",", jiraIssue.Fields.Components.Select(x => x.Name)) : string.Empty;
         if (components != string.Empty)
@@ -90,22 +95,30 @@ public class GithubParser : IGithubParser
         var missingLabels = labels
             .Where(l => !existingLabels.Select(el => el.Name.ToLower()).Contains(l.Name.ToLower()))
             .DistinctBy(l => l.Name);
-        var createdLabels = await _githubService.CreateLabelsAsync(owner, repo, missingLabels, cts).ConfigureAwait(false);
+        var createdLabels = await _githubService.CreateLabelsAsync(options.Owner, options.Repo, missingLabels, cts).ConfigureAwait(false);
         existingLabels.AddRange(createdLabels);
 
         int? milestoneNumber = null;
-        if (jiraIssue.Fields.FixVersions.Any())
+        if (!jiraIssue.Fields.FixVersions.Any())
         {
-            var fixVersion = jiraIssue.Fields.FixVersions.Last();
-            var milestone = milestones.SingleOrDefault(x => x.Title == fixVersion.Name);
-            if (milestone == null)
-            {
-                milestone = await _githubService.CreateMilestoneAsync(fixVersion.Name, owner, repo, cts).ConfigureAwait(false);
-                milestones.Add(milestone);
-            }
-
-            milestoneNumber = milestone.Number;
+            return new GitHubIssue(
+                $"{jiraIssue.Key} / {jiraIssue.Fields.Summary}",
+                description,
+                milestoneNumber,
+                labels.Select(x => x.Name)
+            );
         }
+        
+        var fixVersion = jiraIssue.Fields.FixVersions.Last();
+        var milestone = milestones.SingleOrDefault(x => x.Title == fixVersion.Name);
+        if (milestone == null)
+        {
+            milestone = await _githubService.CreateMilestoneAsync(fixVersion.Name, options.Owner, options.Repo, cts)
+                .ConfigureAwait(false);
+            milestones.Add(milestone);
+        }
+
+        milestoneNumber = milestone.Number;
 
         return new GitHubIssue(
             $"{jiraIssue.Key} / {jiraIssue.Fields.Summary}",
@@ -115,12 +128,13 @@ public class GithubParser : IGithubParser
         );
     }
 
-    private static string ReplaceMatch(Match match, IEnumerable<(string JiraDescriptionUrl, GithubAsset Asset)> linkedAttachments)
+    private static string ReplaceMatch(Match match, IEnumerable<(string JiraDescriptionUrl, GithubAsset Asset)> linkedAttachments, bool authorizedLink)
     {
         var url = match.Groups[1].Value;
         var matchingAttachment = linkedAttachments.SingleOrDefault(x => x.JiraDescriptionUrl == match.Groups[0].Value);
+        var linkAsContent = authorizedLink ? string.Empty : "!";
         return matchingAttachment == default ? 
-            $"![{url.Split("/").Last()}]({url})" :
-            $"![{matchingAttachment.Asset.Name}]({matchingAttachment.Asset.Url})";
+            $"{linkAsContent}[{url.Split("/").Last()}]({url})" :
+            $"{linkAsContent}[{matchingAttachment.Asset.Name}]({matchingAttachment.Asset.Url})";
     }
 }

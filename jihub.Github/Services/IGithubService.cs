@@ -8,5 +8,6 @@ public interface IGithubService
     Task<ICollection<GitHubLabel>> CreateLabelsAsync(string owner, string repo, IEnumerable<GitHubLabel> missingLabels, CancellationToken cts);
     Task<GitHubMilestone> CreateMilestoneAsync(string name, string owner, string repo, CancellationToken cts);
     Task CreateIssuesAsync(string owner, string repo, IEnumerable<GitHubIssue> issues, CancellationToken cts);
-    Task<GithubAsset> CreateAttachmentAsync(string owner, string repo, MemoryStream memoryStream, string name, CancellationToken cts);
+    Task<Committer> GetCommitter();
+    Task<GithubAsset> CreateAttachmentAsync(string owner, string repo, (string Hash, string FileContent) fileData, string name, CancellationToken cts);
 }

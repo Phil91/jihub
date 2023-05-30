@@ -1,9 +1,9 @@
+using jihub.Base;
 using jihub.Github;
 using jihub.Github.Services;
 using jihub.Jira;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace jihub;
 
@@ -33,7 +33,7 @@ public class Worker
     /// </summary>
     /// <param name="options">the options given by the user</param>
     /// <param name="cts">Cancellation Token</param>
-    public async Task<int> ExecuteAsync(CommandLineOptions options, CancellationToken cts)
+    public async Task<int> ExecuteAsync(JihubOptions options, CancellationToken cts)
     {
         try
         {
@@ -44,7 +44,7 @@ public class Worker
 
             var jiraIssues = await jiraService.GetAsync(options.SearchQuery, options.MaxResults, cts).ConfigureAwait(false);
             var githubInformation = await githubService.GetMilestonesAndLabelsAsync(options.Owner, options.Repo, cts).ConfigureAwait(false);
-            var convertedIssues = await parser.ConvertIssues(jiraIssues, options.Owner, options.Repo, githubInformation.Labels.ToList(), githubInformation.Milestones.ToList(), cts).ConfigureAwait(false);
+            var convertedIssues = await parser.ConvertIssues(jiraIssues, options, githubInformation.Labels.ToList(), githubInformation.Milestones.ToList(), cts).ConfigureAwait(false);
             await githubService.CreateIssuesAsync(options.Owner, options.Repo, convertedIssues, cts).ConfigureAwait(false);
         }
         catch (Exception ex)
