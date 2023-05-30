@@ -2,12 +2,12 @@ using jihub.Base;
 using jihub.Github.Models;
 using jihub.Jira.Models;
 
-namespace jihub.Github;
+namespace jihub.Parsers;
 
-public interface IGithubParser
+public interface IParser<in T> where T : class
 {
     Task<IEnumerable<GitHubIssue>> ConvertIssues(
-        IEnumerable<JiraIssue> jiraIssues,
+        IEnumerable<T> issues,
         JihubOptions options,
         List<GitHubLabel> labels,
         List<GitHubMilestone> milestones,

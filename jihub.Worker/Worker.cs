@@ -2,6 +2,8 @@ using jihub.Base;
 using jihub.Github;
 using jihub.Github.Services;
 using jihub.Jira;
+using jihub.Parsers;
+using jihub.Parsers.Jira;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -40,7 +42,7 @@ public class Worker
             using var scope = _serviceScopeFactory.CreateScope();
             var jiraService = scope.ServiceProvider.GetRequiredService<IJiraService>();
             var githubService = scope.ServiceProvider.GetRequiredService<IGithubService>();
-            var parser = scope.ServiceProvider.GetRequiredService<IGithubParser>();
+            var parser = scope.ServiceProvider.GetRequiredService<IJiraParser>();
 
             var jiraIssues = await jiraService.GetAsync(options.SearchQuery, options.MaxResults, cts).ConfigureAwait(false);
             var githubInformation = await githubService.GetMilestonesAndLabelsAsync(options.Owner, options.Repo, cts).ConfigureAwait(false);

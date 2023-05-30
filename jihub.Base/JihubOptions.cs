@@ -34,14 +34,14 @@ namespace jihub.Base
         /// <summary>
         /// The search query to get only the needed jira tickets
         /// </summary>
-        [Option(shortName: 'a', longName: "authorized-link", Required = false, HelpText = "If set all external resources such as images will be refered as a link in the content", Default = false)]
-        public bool AuthorizedLink { get; set; }
+        [Option(shortName: 'l', longName: "link", Required = false, HelpText = "If set all external resources such as images will be refered as a link in the description", Default = false)]
+        public bool Link { get; set; }
 
         /// <summary>
         /// The search query to get only the needed jira tickets
         /// </summary>
-        [Option(shortName: 'l', longName: "link", Required = false, HelpText = "If set all external resources such as images will be linked as content in the content", Default = false)]
-        public bool Link { get; set; }
+        [Option(shortName: 'c', longName: "content-link", Required = false, HelpText = "If set all external resources such as images will be linked as content in the description", Default = false)]
+        public bool ContentLink { get; set; }
 
         /// <summary>
         /// The search query to get only the needed jira tickets
@@ -67,8 +67,8 @@ namespace jihub.Base
         /// <exception cref="ConfigurationException">Exception if the configuration is incorrect</exception>
         public void Validate()
         {
-            if (!AuthorizedLink && !Link && !Export)
-                throw new ConfigurationException($"Please choose one of the following options: {nameof(AuthorizedLink)}, {nameof(Link)}, {nameof(Export)}");
+            if (!Link && !ContentLink)
+                throw new ConfigurationException($"Please choose one of the following options: {nameof(Link)}, {nameof(ContentLink)}");
 
             if (MaxResults > 1000)
                 throw new ConfigurationException($"{nameof(MaxResults)} must not exceed 1000");

@@ -6,16 +6,16 @@ using jihub.Jira;
 using jihub.Jira.Models;
 using Microsoft.Extensions.Logging;
 
-namespace jihub.Github;
+namespace jihub.Parsers.Jira;
 
-public class GithubParser : IGithubParser
+public class JiraParser : IJiraParser
 {
     private readonly Regex _regex = new(@"!(.+?)!", RegexOptions.Compiled, TimeSpan.FromSeconds(2));
-    private readonly ILogger<GithubParser> _logger;
+    private readonly ILogger<JiraParser> _logger;
     private readonly IGithubService _githubService;
     private readonly IJiraService _jiraService;
 
-    public GithubParser(ILogger<GithubParser> logger, IGithubService githubService, IJiraService jiraService)
+    public JiraParser(ILogger<JiraParser> logger, IGithubService githubService, IJiraService jiraService)
     {
         _logger = logger;
         _githubService = githubService;
@@ -47,19 +47,20 @@ public class GithubParser : IGithubParser
         foreach (var groups in matches.Select(m => m.Groups))
         {
             var url = groups[1].Value;
+            var fileName = url.Split("/").Last();
             if (!options.Export)
             {
-                linkedAttachments.Add(new (groups[0].Value, new GithubAsset(url, url.Split("/").Last())));
+                linkedAttachments.Add(new (groups[0].Value, new GithubAsset(url, fileName)));
                 continue;
             }
 
             // TODO: As soon as github supports uploading a asset to an issue switch to that 
             var fileData = await _jiraService.GetAttachmentAsync(url, cts).ConfigureAwait(false);
-            var asset = await _githubService.CreateAttachmentAsync(options.ImportOwner!, options.UploadRepo!, fileData, url.Split("/").Last(), cts).ConfigureAwait(false);
+            var asset = await _githubService.CreateAttachmentAsync(options.ImportOwner!, options.UploadRepo!, fileData, fileName, cts).ConfigureAwait(false);
             linkedAttachments.Add(new (groups[0].Value, asset));
         }
 
-        description = _regex.Replace(description, x => ReplaceMatch(x, linkedAttachments, options.AuthorizedLink));
+        description = _regex.Replace(description, x => ReplaceMatch(x, linkedAttachments, options.Link));
 
         var components = jiraIssue.Fields.Components.Any() ? string.Join(",", jiraIssue.Fields.Components.Select(x => x.Name)) : string.Empty;
         if (components != string.Empty)
@@ -102,7 +103,7 @@ public class GithubParser : IGithubParser
         if (!jiraIssue.Fields.FixVersions.Any())
         {
             return new GitHubIssue(
-                $"{jiraIssue.Key} / {jiraIssue.Fields.Summary}",
+                $"{jiraIssue.Fields.Summary} (ext: {jiraIssue.Key})",
                 description,
                 milestoneNumber,
                 labels.Select(x => x.Name)
@@ -121,7 +122,7 @@ public class GithubParser : IGithubParser
         milestoneNumber = milestone.Number;
 
         return new GitHubIssue(
-            $"{jiraIssue.Key} / {jiraIssue.Fields.Summary}",
+            $"{jiraIssue.Fields.Summary} (ext: {jiraIssue.Key})",
             description,
             milestoneNumber,
             labels.Select(x => x.Name)

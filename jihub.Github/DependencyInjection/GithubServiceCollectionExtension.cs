@@ -27,10 +27,6 @@ public static class GithubServiceCollectionExtension
             c.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", settings.Token);
         });
 
-        services
-            .AddTransient<IGithubService, GithubService>()
-            .AddTransient<IGithubParser, GithubParser>();
-
-        return services;
+        return services.AddTransient<IGithubService, GithubService>();
     }
 }
