@@ -19,7 +19,7 @@ public static class GithubServiceCollectionExtension
         
         services.AddHttpClient(nameof(GithubService), c =>
         {
-            c.BaseAddress = new Uri("https://api.github.com/repos/");
+            c.BaseAddress = new Uri("https://api.github.com/");
             c.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
             c.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("jihub", "0.1"));
             c.DefaultRequestHeaders.Connection.Add("keep-alive");

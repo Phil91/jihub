@@ -20,9 +20,9 @@
 
 using CommandLine;
 using jihub;
+using jihub.Base;
 using jihub.Github.DependencyInjection;
 using jihub.Jira.DependencyInjection;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -52,9 +52,11 @@ try
 
     Console.WriteLine("Starting...");
     var workerInstance = host.Services.GetRequiredService<Worker>();
-    await Parser.Default.ParseArguments<CommandLineOptions>(args)
+    await Parser.Default.ParseArguments<JihubOptions>(args)
         .MapResult(async opts =>
             {
+                opts.Validate();
+
                 try
                 {
                     // We have the parsed arguments, so let's just pass them down

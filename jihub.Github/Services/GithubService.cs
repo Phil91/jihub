@@ -3,6 +3,7 @@ using jihub.Github.Models;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Web;
 
 namespace jihub.Github.Services;
 
@@ -30,7 +31,7 @@ public class GithubService : IGithubService
 
     private async Task<IEnumerable<T>> Get<T>(string urlPath, string owner, string repo, CancellationToken cts)
     {
-        var url = $"{owner}/{repo}/{urlPath}";
+        var url = $"repos/{owner}/{repo}/{urlPath}";
         
         _logger.LogInformation("Requesting {urlPath}", urlPath);
         var result = await _httpClient.GetFromJsonAsync<IEnumerable<T>>(url, Options, cts).ConfigureAwait(false);
@@ -47,7 +48,7 @@ public class GithubService : IGithubService
     {
         async Task<GitHubLabel> CreateLabel(GitHubLabel label)
         {
-            var url = $"{owner}/{repo}/labels";
+            var url = $"repos/{owner}/{repo}/labels";
         
             _logger.LogInformation("Creating label: {label}", label.Name);
             var result = await _httpClient.PostAsJsonAsync(url, label, Options, cts).ConfigureAwait(false);
@@ -77,7 +78,7 @@ public class GithubService : IGithubService
 
     public async Task<GitHubMilestone> CreateMilestoneAsync(string name, string owner, string repo, CancellationToken cts)
     {
-        var url = $"{owner}/{repo}/milestones";
+        var url = $"repos/{owner}/{repo}/milestones";
     
         _logger.LogInformation("Creating milestone: {milestone}", name);
         var result = await _httpClient.PostAsJsonAsync(url, new
@@ -103,7 +104,7 @@ public class GithubService : IGithubService
     {
         async Task CreateIssue(GitHubIssue issue)
         {
-            var url = $"{owner}/{repo}/issues";
+            var url = $"repos/{owner}/{repo}/issues";
         
             _logger.LogInformation("Creating issue: {issue}", issue.Title);
             var result = await _httpClient.PostAsJsonAsync(url, issue, Options, cts).ConfigureAwait(false);
@@ -126,25 +127,50 @@ public class GithubService : IGithubService
         await Task.WhenAll(tasks);
     }
 
-    public async Task<GithubAsset> CreateAttachmentAsync(string owner, string repo, MemoryStream memoryStream, string name, CancellationToken cts)
+    public async Task<GithubAsset> CreateAttachmentAsync(string owner, string repo, (string Hash, string FileContent) fileData, string name, CancellationToken cts)
     {
-        var requestContent = new MultipartFormDataContent();
-        requestContent.Add(new StreamContent(memoryStream), name.Split(".")[0], name);
-
-        var response = await _httpClient.PostAsync($"{owner}/{repo}/releases/1/assets", requestContent);
+        var url = $"repos/{owner}/{repo}/contents/{name}";
+        var content = new UploadFileContent(
+            $"Upload file {name}",
+            HttpUtility.HtmlEncode(fileData.FileContent)
+        );
+        var response = await _httpClient.PutAsJsonAsync(url, content, cts).ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
         {
             throw new("Asset creation failed");
         }
-        
-        var content = await response.Content.ReadAsStringAsync(cts);
-        var asset = JsonSerializer.Deserialize<GithubAsset>(content);
-        if (asset == null)
+
+        var assetContent = await response.Content.ReadFromJsonAsync<GithubAssetContent>(Options, cts).ConfigureAwait(false);
+        if (assetContent == null)
         {
             throw new("Couldn't parse Github Asset");
         }
 
-        return asset;
+        return assetContent.Content;
+    }
+
+    public async Task<Committer> GetCommitter()
+    {
+        var userResponse = await _httpClient.GetFromJsonAsync<GithubUser>("user").ConfigureAwait(false);
+        var emailsResponse = await _httpClient.GetFromJsonAsync<IEnumerable<GithubUserEmail>>("user/emails").ConfigureAwait(false);
+
+        if (userResponse == null)
+        {
+            throw new("Couldn't receive user information");
+        }
+
+        if (emailsResponse == null)
+        {
+            throw new("Couldn't receive user email information");
+        }
+
+        var primaryEmails = emailsResponse.Where(x => x.Primary);
+        if (primaryEmails.Count() != 1)
+        {
+            throw new("There must be exactly one primary email");
+        }
+
+        return new Committer(userResponse.Name, primaryEmails.Single().Email);
     }
 }
