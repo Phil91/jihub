@@ -1,4 +1,4 @@
-using jihub.Jira.Models;
+﻿using jihub.Jira.Models;
 
 namespace jihub.Jira;
 

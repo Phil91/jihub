@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace jihub.Github.Models;
 
@@ -9,13 +9,21 @@ public record GitHubInformation
     IEnumerable<GitHubMilestone> Milestones
 );
 
+public record GithubContent
+(
+    string Name,
+    [property: JsonPropertyName("html_url")]
+    string Url
+);
+
 public record GitHubIssue
 (
     int Id,
     int Number,
     string Title,
     string? Body,
-    GitHubMilestone Milestone,
+    GitHubMilestone? Milestone,
+    [property: JsonConverter(typeof(JsonStringEnumConverter))]
     GithubState State,
     IEnumerable<GitHubLabel> Labels
 );
@@ -30,6 +38,6 @@ public record GitHubMilestone(
     string Title,
     int Number,
     string Description,
-    [property: JsonPropertyName("due_on")] 
+    [property: JsonPropertyName("due_on")]
     string? DueOn
 );

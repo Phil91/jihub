@@ -1,4 +1,4 @@
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using jihub.Github.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +16,7 @@ public static class GithubServiceCollectionExtension
 
         var sp = services.BuildServiceProvider();
         var settings = sp.GetRequiredService<IOptions<GithubServiceSettings>>().Value;
-        
+
         services.AddHttpClient(nameof(GithubService), c =>
         {
             c.BaseAddress = new Uri("https://api.github.com/");

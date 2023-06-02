@@ -1,4 +1,4 @@
-using jihub.Github.Models;
+﻿using jihub.Github.Models;
 
 namespace jihub.Parsers.DependencyInjection;
 

@@ -1,4 +1,4 @@
-using jihub.Parsers.Jira;
+﻿using jihub.Parsers.Jira;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

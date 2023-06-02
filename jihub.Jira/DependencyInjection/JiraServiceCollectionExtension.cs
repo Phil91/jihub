@@ -1,4 +1,4 @@
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -15,7 +15,7 @@ public static class JiraServiceCollectionExtension
 
         var sp = services.BuildServiceProvider();
         var settings = sp.GetRequiredService<IOptions<JiraServiceSettings>>().Value;
-        
+
         var authenticationString = $"{settings.JiraUser}:{settings.JiraPassword}";
         var auth = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes(authenticationString));
         var baseUrl = settings.JiraInstanceUrl;
