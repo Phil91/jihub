@@ -1,0 +1,39 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        dotnet-version: ['7.0']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET Core ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build application
+        run: dotnet build --configuration Release --output ./bin
+
+      - name: Publish application
+        run: dotnet publish --configuration Release --output ./bin --runtime ${{ matrix.os }}
+        
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: app-${{ matrix.os }}
+          path: ./bin

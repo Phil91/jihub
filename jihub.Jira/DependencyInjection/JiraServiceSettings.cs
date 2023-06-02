@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace jihub.Jira.DependencyInjection;
 
@@ -12,7 +12,7 @@ public class JiraServiceSettings
 
     [Required(AllowEmptyStrings = false)]
     public string JiraUser { get; set; } = null!;
-    
+
     [Required(AllowEmptyStrings = false)]
     public string JiraPassword { get; set; } = null!;
 }

@@ -70,7 +70,7 @@ try
                     return -3; // Unhandled error
                 }
             },
-            _ => Task.FromResult(-1)); 
+            _ => Task.FromResult(-1));
     Console.WriteLine("Execution finished shutting down");
 }
 catch (Exception ex)

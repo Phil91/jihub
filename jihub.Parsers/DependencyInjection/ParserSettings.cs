@@ -1,7 +1,7 @@
-namespace jihub.Parsers.DependencyInjection;
+﻿namespace jihub.Parsers.DependencyInjection;
 
 /// <summary>
-/// Settings used in business logic concerning connectors.
+/// Settings for the parser.
 /// </summary>
 public class ParserSettings
 {

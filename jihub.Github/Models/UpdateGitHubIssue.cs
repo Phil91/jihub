@@ -1,4 +1,4 @@
-namespace jihub.Github.Models;
+﻿namespace jihub.Github.Models;
 
 public record UpdateGitHubIssue
 (

@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace jihub.Jira.Models;
 
@@ -14,6 +14,7 @@ public record JiraIssue(string Key, IssueFields Fields);
 public record IssueFields
 (
     IssueType Issuetype,
+    IEnumerable<JiraAttachment> Attachment,
     string Description,
     string Summary,
     IEnumerable<Component> Components,
@@ -26,6 +27,13 @@ public record IssueFields
     double? StoryPoints,
     [property: JsonPropertyName("customfield_10020")]
     IEnumerable<string>? Sprints
+);
+
+public record JiraAttachment
+(
+    string Filename,
+    [property: JsonPropertyName("content")]
+    string Url
 );
 
 public record IssueType(string Name, string Description);

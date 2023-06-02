@@ -1,11 +1,9 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using jihub.Jira.DependencyInjection;
 using jihub.Jira.Models;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace jihub.Jira;
 
@@ -27,10 +25,10 @@ public class JiraService : IJiraService
         _httpClient = httpClientFactory.CreateClient(nameof(JiraService));
         _httpDownloadClient = httpClientFactory.CreateClient($"{nameof(JiraService)}Download");
     }
-    
+
     public async Task<IEnumerable<JiraIssue>> GetAsync(string searchQuery, int maxResults, CancellationToken cts)
     {
-        var url = $"?jql={searchQuery}&maxResults={maxResults}&fields=key,labels,issuetype,project,status,description,summary,components,fixVersions,versions,customfield_10028,customfield_10020";
+        var url = $"?jql={searchQuery}&maxResults={maxResults}&fields=key,labels,issuetype,project,status,description,summary,components,fixVersions,versions,customfield_10028,customfield_10020,attachment";
 
         _logger.LogInformation("Requesting Jira Issues");
         var result = await _httpClient.GetFromJsonAsync<JiraResult>(url, Options, cts).ConfigureAwait(false);
@@ -58,7 +56,7 @@ public class JiraService : IJiraService
         var content = Convert.ToBase64String(c);
         if (ms.Length != contentStream.Length || c.Length != contentStream.Length)
         {
-            throw new ($"asset {url.Split("/").Last()} transmitted length {contentStream.Length} doesn't match actual length {ms.Length}.");
+            throw new($"asset {url.Split("/").Last()} transmitted length {contentStream.Length} doesn't match actual length {ms.Length}.");
         }
 
         return (hash, content);

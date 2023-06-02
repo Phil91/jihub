@@ -1,8 +1,8 @@
-namespace jihub.Github.Models;
+﻿namespace jihub.Github.Models;
 
-public record GithubUser (
+public record GithubUser(
     string Name);
 
-public record GithubUserEmail (
+public record GithubUserEmail(
     string Email,
     bool Primary);

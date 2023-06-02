@@ -1,4 +1,4 @@
-using CommandLine;
+﻿using CommandLine;
 
 namespace jihub.Base
 {
@@ -24,13 +24,13 @@ namespace jihub.Base
         /// </summary>
         [Option(shortName: 'm', longName: "max-results", Required = false, HelpText = "The max jira results", Default = 1000)]
         public int MaxResults { get; set; } = 1000;
-        
+
         /// <summary>
         /// The search query to get only the needed jira tickets
         /// </summary>
         [Option(shortName: 'q', longName: "query", Required = true, HelpText = "Search query to filter jira issues")]
         public string SearchQuery { get; set; } = null!;
-        
+
         /// <summary>
         /// The search query to get only the needed jira tickets
         /// </summary>

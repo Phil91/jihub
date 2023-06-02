@@ -1,8 +1,7 @@
-using jihub.Base;
-using jihub.Github;
+﻿using jihub.Base;
+using jihub.Github.Models;
 using jihub.Github.Services;
 using jihub.Jira;
-using jihub.Parsers;
 using jihub.Parsers.Jira;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -10,7 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace jihub;
 
 /// <summary>
-/// Service that reads all open/pending processSteps of a checklist and triggers their execution.
+/// Worker to process the jql query.
 /// </summary>
 public class Worker
 {
@@ -31,7 +30,7 @@ public class Worker
     }
 
     /// <summary>
-    /// Handles the checklist processing
+    /// Handles the conversion from jira to github issues and the import to github
     /// </summary>
     /// <param name="options">the options given by the user</param>
     /// <param name="cts">Cancellation Token</param>
@@ -45,12 +44,18 @@ public class Worker
             var parser = scope.ServiceProvider.GetRequiredService<IJiraParser>();
 
             var jiraIssues = await jiraService.GetAsync(options.SearchQuery, options.MaxResults, cts).ConfigureAwait(false);
-            var githubInformation = await githubService.GetRepoInformation(options.Owner, options.Repo, cts).ConfigureAwait(false);
+            var content = Enumerable.Empty<GithubContent>();
+            if (options.Export)
+            {
+                content = await githubService.GetRepoContent(options.ImportOwner!, options.UploadRepo!, cts).ConfigureAwait(false);
+            }
+
+            var githubInformation = await githubService.GetRepositoryData(options.Owner, options.Repo, cts).ConfigureAwait(false);
 
             var excludedJiraIssues = jiraIssues.Where(x => githubInformation.Issues.Any(i => i.Title.Contains($"(ext: {x.Key})")));
             _logger.LogInformation("The following issues were not imported because they are already available in Github {Issues}", string.Join(",", excludedJiraIssues.Select(x => x.Key)));
 
-            var convertedIssues = await parser.ConvertIssues(jiraIssues.Except(excludedJiraIssues), options, githubInformation.Labels.ToList(), githubInformation.Milestones.ToList(), cts).ConfigureAwait(false);
+            var convertedIssues = await parser.ConvertIssues(jiraIssues.Except(excludedJiraIssues), options, content, githubInformation.Labels.ToList(), githubInformation.Milestones.ToList(), cts).ConfigureAwait(false);
             await githubService.CreateIssuesAsync(options.Owner, options.Repo, convertedIssues, cts).ConfigureAwait(false);
         }
         catch (Exception ex)
