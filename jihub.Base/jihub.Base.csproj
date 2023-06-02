@@ -3,10 +3,9 @@
     <PropertyGroup>
         <AssemblyName>jihub.Base</AssemblyName>
         <RootNamespace>jihub.Base</RootNamespace>
-        <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+        <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <GenerateDocumentationFile>True</GenerateDocumentationFile>
         <LangVersion>default</LangVersion>
     </PropertyGroup>
 

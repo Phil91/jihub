@@ -20,7 +20,7 @@ public class GithubService : IGithubService
         _httpClient = httpClientFactory.CreateClient(nameof(GithubService));
     }
 
-    public async Task<IEnumerable<GithubContent>> GetRepoContent(string owner, string repo, CancellationToken cts) => 
+    public async Task<IEnumerable<GithubContent>> GetRepoContent(string owner, string repo, CancellationToken cts) =>
         await Get<GithubContent>("contents", owner, repo, cts).ConfigureAwait(false);
 
     public async Task<GitHubInformation> GetRepositoryData(string owner, string repo, CancellationToken cts)
