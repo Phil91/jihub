@@ -1,0 +1,39 @@
+name: Build Windows
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        os: [win-x64]
+        dotnet-version: ['7.0']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET Core ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build application
+        run: dotnet build --configuration Release --output ./jihub-${{ matrix.os }}
+
+      - name: Publish application
+        run: dotnet publish --configuration Release --output ./jihub-${{ matrix.os }} --runtime ${{ matrix.os }}
+        
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: jihub-${{ matrix.os }}
+          path: ./jihub-${{ matrix.os }}
