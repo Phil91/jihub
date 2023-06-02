@@ -1,4 +1,4 @@
-name: Build
+name: Build Linux
 
 on:
   push:
@@ -8,10 +8,10 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [linux-x64]
         dotnet-version: ['7.0']
 
     steps:
@@ -27,13 +27,13 @@ jobs:
         run: dotnet restore
 
       - name: Build application
-        run: dotnet build --configuration Release --output ./bin
+        run: dotnet build --configuration Release --output ./jihub-${{ matrix.os }}
 
       - name: Publish application
-        run: dotnet publish --configuration Release --output ./bin --runtime ${{ matrix.os }}
+        run: dotnet publish --configuration Release --output ./jihub-${{ matrix.os }} --runtime ${{ matrix.os }}
         
       - name: Archive artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: app-${{ matrix.os }}
-          path: ./bin
+          name: jihub-${{ matrix.os }}
+          path: ./jihub-${{ matrix.os }}
