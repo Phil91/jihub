@@ -1,4 +1,4 @@
-name: Build Linux
+name: Build Artifacts
 
 on:
   push:
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [linux-x64]
+        os: [linux-x64,osx-x64,osx.11.0-arm64,win-x64]
         dotnet-version: ['7.0']
 
     steps:

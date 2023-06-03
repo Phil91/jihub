@@ -29,6 +29,7 @@ Maintaining a consistent code style and following good programming practices hel
 - Write clean, readable, and self-explanatory code.
 - Use meaningful variable and function names.
 - Include comments where necessary to explain complex logic or provide context.
+- Use conventional commits, for further information see [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification)
 
 ### Documentation
 

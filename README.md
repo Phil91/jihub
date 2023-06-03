@@ -1,45 +1,178 @@
-# jihub
+<a name="readme-top"></a>
 
-Command Tool to help exporting Issues from Jira and import them as GitHub Issues
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![Apache-2.0 License][license-shield]][license-url]
+[![LinkedIn][linkedin-shield]][linkedin-url]
 
-## What will be imported
+<br />
+<div align="center">
+  <h3 align="center">jihub</h3>
 
-Jihub let's you specify a search query to be able to import only the Jira Issues of your needs, for further information see `How to run`.
+  <p align="center">
+    Command Line Tool to help exporting Issues and Attachments from Jira and import them as GitHub Issues
+    <br />
+    <a href="https://github.com/phil91/jihub/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/phil91/jihub/issues">Request Feature</a>
+  </p>
+</div>
 
-The jira issues will be converted and imported as GitHub Issues. All labels associated with a Jira Issue will be created in GitHub and linked to the corresponding Github Issue. The `Fix Version/s` field will be created as Milestone in GitHub.
 
-All other currently implemented labels will be imported within the description.
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+    </li>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#installation">Installation</a></li>
+      </ul>
+    </li>
+    <li><a href="#usage">Usage</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ol>
+</details>
 
-## How to use
 
-Make sure you have the dotnet 6 runtime installed on your system. For further information visit [Dotnet](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
-To be able to only import the needed Jira Issues you must specify a search query, to test your query and the given results please visit e.g. https://jira.example.com/issues/
+## About The Project
+`Jihub` is a sophisticated tool designed to streamline the process of importing Jira issues into GitHub based on specific search queries. With `Jihub`, you can seamlessly convert Jira issues into GitHub Issues, ensuring a smooth transition and preserving vital information such as labels, fix versions, and attachments.
 
-Example Query: `project = Test AND status not in (Closed, Cancelled, Done, Resolved, "In progress", Inactive, "In Review", "USER READY")``
+Additionally, `Jihub` offers an optional feature to export Jira attachments directly to a designated GitHub repository, further enhancing collaboration and consolidating project resources.
 
-_To use the Query please make sure to html encode it. Quick google search should help finding a good online tool for that._
+For detailed instructions on how to utilize `Jihub` effectively, please refer to the [Usage](#usage) section. Experience the convenience and efficiency of effortlessly migrating your Jira issues to GitHub with `Jihub`.
 
-1. Creating a GitHub PAT (Personal Access Token)
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-- Navigate to https://github.com/settings/tokens
-- Generate a new token.
+## Getting Started
 
-2. Setup the configuration
+To start using `Jihub`, please follow the steps below.
 
-- All following steps must be executed within the jihub.Worker directory.
-- Open the appsettings.json file with the editor of your choice.
-- Fill all the values that are currently left empty and safe.
-    - (`Github -> Token` must be filled with the generated token)
+### Prerequisites
 
-3. Restore all packages and dependencies
+Before executing `Jihub`, make sure you have the following prerequisites:
 
-> dotnet restore
+- A GitHub Personal Access Token (PAT) for authentication.
+- Write access to the github repository you want to import the issues to
+- Valid login credentials for a publicly accessible Jira instance.
+- OPTIONAL: If you want to export the jira attachments you need write access to the repository you want to import the attachments to.
 
-4. Build the solution
+### Setup
 
-> dotnet build
+To setup `Jihub`, just follow these steps:
 
-5. Run the application
+1. Download the release package of your choice.
+2. Within the package, locate the specific zip file for your operating system. For example, if you're using macOS, select `jihub-osx64.zip`.
+3. Alternatively, you can download the latest build artifact from the [Actions](https://github.com/Phil91/jihub/actions) section. On the left side, select the Build action and download the artifact that matches your operating system.
+4. Unzip jihub and navigate into the unziped folder.
+5. Open the appsettings.json with an editor of your choice and fill the following fields
 
-> dotnet run -r {Target Repository} -o {Repository Owner} -q {Encoded Query}
+Certainly! Here's a Markdown table representing the configuration settings for Jira and GitHub:
+
+| Configuration      | Key                  | Value          |
+|--------------------|----------------------|----------------|
+| Jira               | JiraInstanceUrl      | The url of your jira instance, e.g. https://example-jira.com/                |
+|                    | JiraUser             | Your jira username                |
+|                    | JiraPassword         | Your jira password               |
+| GitHub             | Token                | Your generated GitHub PAT               |
+
+
+By following these steps, you'll be able to use `Jihub` for importing Jira issues to GitHub.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+## Usage
+
+Once you completed the setup open a terminal and navigate to your jihub folder. To run the import simply run:
+
+```shell
+dotnet jihub.Worker.dll
+```
+
+
+| Parameter          | Short Name | Long Name       | Required | Default | Description                                                                                |
+|--------------------|------------|-----------------|----------|---------|--------------------------------------------------------------------------------------------|
+| Repo               | -r         | --repo          | Yes      |         | Name of the GitHub repository                                                             |
+| Owner              | -o         | --owner         | Yes      |         | Username of the GitHub user or organization that hosts the project                         |
+| SearchQuery        | -q         | --query         | Yes      |         | The search query to filter Jira issues                                                    |
+| MaxResults         | -m         | --max-results   | No       | 1000    | The maximum number of Jira results to retrieve                                             |
+| Link               | -l         | --link          | No       | false   | If set, all external resources such as images will be referred to as a link in the description |
+| ContentLink        | -c         | --content-link  | No       | false   | If set, all external resources such as images will be linked as content in the description |
+| Export             | -e         | --export        | No       | false   | If set, all external resources such as images will be exported to the given repository     |
+| UploadRepo         | -u         | --upload-repo   | No       |         | The repository where the Jira assets will be uploaded                                      |
+| ImportOwner        | -i         | --import-owner  | No       |         | The owner of the repository where the Jira assets should be uploaded                       |
+
+Please note that the "Required" column indicates whether a parameter is mandatory or not, and the "Default" column shows the default value if not specified.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+## Roadmap
+
+- [ ] Export to various providers
+- [ ] Make configuration easier
+- [ ] Enhance Logging
+- [ ] Make fields to export to github issues configurable
+
+See the [open issues](https://github.com/phil91/jihub/issues) for a full list of proposed features (and known issues).
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+<!-- CONTRIBUTING -->
+## Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+Don't forget to give the project a star! Thanks again!
+
+For further information on how to contribute, take a look at [Contributing](https://www.github.com/phil91/jihub/CONTRIBUTING.md)
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+## License
+
+Distributed under the Apache-2.0 License. See [LICENSE](https://www.github.com/phil91/jihub/LICENSE) for more information.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+
+## Contact
+
+Feel free to always open a dicussion, or hit me up on LinkedIn
+
+Project Link: [https://github.com/phil91/jihub](https://github.com/phil91/jihub)
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+<!-- MARKDOWN LINKS & IMAGES -->
+[contributors-shield]: https://img.shields.io/github/contributors/phil91/jihub.svg?style=for-the-badge
+[contributors-url]: https://github.com/phil91/jihub/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/phil91/jihub.svg?style=for-the-badge
+[forks-url]: https://github.com/phil91/jihub/network/members
+[stars-shield]: https://img.shields.io/github/stars/phil91/jihub.svg?style=for-the-badge
+[stars-url]: https://github.com/phil91/jihub/stargazers
+[issues-shield]: https://img.shields.io/github/issues/phil91/jihub.svg?style=for-the-badge
+[issues-url]: https://github.com/phil91/jihub/issues
+[license-shield]: https://img.shields.io/github/license/phil91/jihub.svg?style=for-the-badge
+[license-url]: https://github.com/phil91/jihub/blob/master/LICENSE
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
+[linkedin-url]: https://linkedin.com/in/phils91
