@@ -1,10 +1,9 @@
-name: Build Linux
+name: Build Artifacts
 
 on:
   push:
     branches:
       - main
-      - feature/*
   workflow_dispatch:
 
 jobs:
