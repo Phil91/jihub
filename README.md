@@ -2,7 +2,7 @@
 
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
+[![Stars][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![Apache-2.0 License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
@@ -36,6 +36,9 @@
     </li>
     <li><a href="#usage">Usage</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
+    <li>
+      <a href="#known-limitations">Known limitations</a>
+    </li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -45,6 +48,7 @@
 
 
 ## About The Project
+
 `Jihub` is a sophisticated tool designed to streamline the process of importing Jira issues into GitHub based on specific search queries. With `Jihub`, you can seamlessly convert Jira issues into GitHub Issues, ensuring a smooth transition and preserving vital information such as labels, fix versions, and attachments.
 
 Additionally, `Jihub` offers an optional feature to export Jira attachments directly to a designated GitHub repository, further enhancing collaboration and consolidating project resources.
@@ -90,9 +94,14 @@ By following these steps, you'll be able to use `Jihub` for importing Jira issue
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 ## Usage
+
+### Create you Jira search query
+
+In your Jira Instance, navigate to `/issues`, for example: https://your-jira-instance.com/issues.
+You can filter for the issues of your needs. After your search result is as wanted, click the Advanced Link right next to the serach button to be able to see your jql query. Copy the query and URL encode it (there are plenty of sites doing it on the fly online).
+
+### Execute Jihub
 
 Once you completed the setup open a terminal and navigate to your jihub folder. To run the import simply run:
 
@@ -105,7 +114,7 @@ dotnet jihub.Worker.dll
 |--------------------|------------|-----------------|----------|---------|--------------------------------------------------------------------------------------------|
 | Repo               | -r         | --repo          | Yes      |         | Name of the GitHub repository                                                             |
 | Owner              | -o         | --owner         | Yes      |         | Username of the GitHub user or organization that hosts the project                         |
-| SearchQuery        | -q         | --query         | Yes      |         | The search query to filter Jira issues                                                    |
+| SearchQuery        | -q         | --query         | Yes      |         | The search query to filter Jira issues, must be url encoded                                                    |
 | MaxResults         | -m         | --max-results   | No       | 1000    | The maximum number of Jira results to retrieve                                             |
 | Link               | -l         | --link          | No       | false   | If set, all external resources such as images will be referred to as a link in the description |
 | ContentLink        | -c         | --content-link  | No       | false   | If set, all external resources such as images will be linked as content in the description |
@@ -116,8 +125,6 @@ dotnet jihub.Worker.dll
 Please note that the "Required" column indicates whether a parameter is mandatory or not, and the "Default" column shows the default value if not specified.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
 
 ## Roadmap
 
@@ -130,9 +137,14 @@ See the [open issues](https://github.com/phil91/jihub/issues) for a full list of
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+## Known Limitations
+
+Currently the limit of results taken from the searchQuery is limited to 1000. This will be changed in the future.
+Due to GitHub Api limitations the import of the issues to GitHub will pause for 20 seconds after 10 created issues before continuing with the next 10.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-<!-- CONTRIBUTING -->
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
@@ -145,13 +157,11 @@ For further information on how to contribute, take a look at [Contributing](http
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-
 ## License
 
 Distributed under the Apache-2.0 License. See [LICENSE](https://www.github.com/phil91/jihub/LICENSE) for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 
 ## Contact
