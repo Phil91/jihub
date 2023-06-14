@@ -10,6 +10,8 @@ public record CreateGitHubIssue
     [property: JsonIgnore]
     GithubState State,
     IEnumerable<string> Labels,
+    [property: JsonPropertyName("assignees")]
+    IEnumerable<string>? Assignees,
     [property: JsonIgnore]
     IEnumerable<GithubAsset> Attachments
 );

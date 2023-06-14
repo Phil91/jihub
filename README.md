@@ -80,14 +80,13 @@ To setup `Jihub`, just follow these steps:
 4. Unzip jihub and navigate into the unziped folder.
 5. Open the appsettings.json with an editor of your choice and fill the following fields
 
-Certainly! Here's a Markdown table representing the configuration settings for Jira and GitHub:
-
 | Configuration      | Key                  | Value          |
 |--------------------|----------------------|----------------|
 | Jira               | JiraInstanceUrl      | The url of your jira instance, e.g. https://example-jira.com/                |
 |                    | JiraUser             | Your jira username                |
 |                    | JiraPassword         | Your jira password               |
 | GitHub             | Token                | Your generated GitHub PAT               |
+| Parsers:Jira       | EmailMappings        | Mapping between JiraEmail and Github Name, should be in the following format: { "JiraMail": "test.mail.com", "GithubName": "Phil91" }               |
 
 
 By following these steps, you'll be able to use `Jihub` for importing Jira issues to GitHub.
