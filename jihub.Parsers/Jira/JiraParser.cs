@@ -223,7 +223,7 @@ public class JiraParser : IJiraParser
         linkedAttachments.Remove(matchingAttachment);
         return result;
     }
-    
+
     private static string ReplaceLinks(Match match)
     {
         var link = match.Groups[0].Value
