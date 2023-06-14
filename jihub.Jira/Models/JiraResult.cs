@@ -19,6 +19,7 @@ public record IssueFields
     string Summary,
     IEnumerable<Component> Components,
     Project Project,
+    Assignee Assignee,
     IssueStatus Status,
     IEnumerable<string> Labels,
     IEnumerable<FixVersion> FixVersions,
@@ -39,6 +40,8 @@ public record JiraAttachment
 public record IssueType(string Name, string Description);
 
 public record Project(string Key, string Name);
+
+public record Assignee(string Name, string Email);
 
 public record IssueStatus(string Name);
 

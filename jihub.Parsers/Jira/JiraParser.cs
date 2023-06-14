@@ -50,6 +50,8 @@ public class JiraParser : IJiraParser
         var labels = await GetGithubLabels(jiraIssue, options, existingLabels, cts).ConfigureAwait(false);
         var state = GetGithubState(jiraIssue);
         var milestoneNumber = await GetMilestoneNumber(jiraIssue, options, milestones, cts).ConfigureAwait(false);
+        var mailMapping = _settings.Jira.EmailMappings.SingleOrDefault(x => x.JiraMail.Equals(jiraIssue.Fields.Assignee.Name, StringComparison.OrdinalIgnoreCase));
+        var assignee = mailMapping != null ? Enumerable.Repeat(mailMapping.GithubName, 1) : Enumerable.Empty<string>();
 
         return new CreateGitHubIssue(
             $"{jiraIssue.Fields.Summary} (ext: {jiraIssue.Key})",
@@ -57,6 +59,7 @@ public class JiraParser : IJiraParser
             milestoneNumber,
             state,
             labels.Select(x => x.Name),
+            assignee,
             assets
         );
     }
