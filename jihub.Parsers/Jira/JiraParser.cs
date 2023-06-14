@@ -14,6 +14,7 @@ namespace jihub.Parsers.Jira;
 public class JiraParser : IJiraParser
 {
     private readonly Regex _regex = new(@"!(.+?)!", RegexOptions.Compiled, TimeSpan.FromSeconds(2));
+    private readonly Regex _linkRegex = new(@"\[.{1,255}\]", RegexOptions.Compiled, TimeSpan.FromSeconds(2));
 
     private readonly ILogger<JiraParser> _logger;
     private readonly IGithubService _githubService;
@@ -113,6 +114,8 @@ public class JiraParser : IJiraParser
     {
         var description = _regex.Replace(jiraIssue.Fields.Description.Replace(@"\u{a0}", ""),
             x => ReplaceMatch(x, attachmentsToReplace, options.Link));
+
+        description = _linkRegex.Replace(description, ReplaceLinks);
 
         var sb = new StringBuilder(description);
         sb.AppendLine().AppendLine();
@@ -219,5 +222,19 @@ public class JiraParser : IJiraParser
             $"{linkAsContent}[{matchingAttachment.Asset.Name}]({matchingAttachment.Asset.Url})";
         linkedAttachments.Remove(matchingAttachment);
         return result;
+    }
+    
+    private static string ReplaceLinks(Match match)
+    {
+        var link = match.Groups[0].Value
+            .Replace("[", string.Empty)
+            .Replace("]", string.Empty);
+        if (link.Contains("|"))
+        {
+            var linkElements = link.Split("|");
+            return $"[{linkElements[0]}]({linkElements[1]})";
+        }
+
+        return $"[{link.Split("/").Last()}]({link})";
     }
 }
