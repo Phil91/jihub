@@ -38,7 +38,6 @@
   * [Contact](#contact)
 </details>
 
-
 ## About The Project
 
 `Jihub` is a sophisticated tool designed to streamline the process of importing Jira issues into GitHub based on specific search queries. With `Jihub`, you can seamlessly convert Jira issues into GitHub Issues, ensuring a smooth transition and preserving vital information such as labels, fix versions, and attachments.
