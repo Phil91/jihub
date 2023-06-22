@@ -141,7 +141,7 @@ public class GithubService : IGithubService
         {
             await CreateIssue(issue, cts).ConfigureAwait(false);
             counter++;
-            if (counter % batchSize != 0)
+            if (counter % batchSize + 1 != 0)
             {
                 continue;
             }

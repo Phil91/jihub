@@ -22,8 +22,8 @@ namespace jihub.Base
         /// <summary>
         /// The max results when requesting jira
         /// </summary>
-        [Option(shortName: 'm', longName: "max-results", Required = false, HelpText = "The max jira results", Default = 1000)]
-        public int MaxResults { get; set; } = 1000;
+        [Option(shortName: 'm', longName: "max-results", Required = false, HelpText = "The max jira results", Default = 500)]
+        public int MaxResults { get; set; } = 500;
 
         /// <summary>
         /// The search query to get only the needed jira tickets

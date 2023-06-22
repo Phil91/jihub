@@ -28,7 +28,28 @@ public class JiraService : IJiraService
 
     public async Task<IEnumerable<JiraIssue>> GetAsync(string searchQuery, int maxResults, CancellationToken cts)
     {
-        var url = $"?jql={searchQuery}&maxResults={maxResults}&fields=key,labels,issuetype,project,status,description,summary,components,fixVersions,versions,customfield_10028,customfield_10020,attachment,assignee";
+        var result = await RequestJiraIssues(searchQuery, 0, maxResults, cts).ConfigureAwait(false);
+        var issues = result.Issues.ToList();
+        var pages = Math.Ceiling(((double)result.Total / maxResults));
+        if (pages > 1)
+        {
+            for (var i = 1; i < pages; i++)
+            {
+                var start = i * maxResults;
+                var queryMaxResults = result.Total - issues.Count;
+                queryMaxResults = maxResults <= queryMaxResults ? maxResults : queryMaxResults;
+                result = await RequestJiraIssues(searchQuery, start, queryMaxResults, cts).ConfigureAwait(false);
+                issues.AddRange(result.Issues);
+            }
+        }
+
+        _logger.LogInformation("Received {Count} Jira Issues", issues.Count);
+        return issues;
+    }
+
+    private async Task<JiraResult> RequestJiraIssues(string searchQuery, int start, int maxResults, CancellationToken cts)
+    {
+        var url = $"?jql={searchQuery}&start={start}&maxResults={maxResults}&fields=key,labels,issuetype,project,status,description,summary,components,fixVersions,versions,customfield_10028,customfield_10020,attachment,assignee";
 
         _logger.LogInformation("Requesting Jira Issues");
         var result = await _httpClient.GetFromJsonAsync<JiraResult>(url, Options, cts).ConfigureAwait(false);
@@ -37,8 +58,7 @@ public class JiraService : IJiraService
             throw new("Jira request failed");
         }
 
-        _logger.LogInformation("Received {Count} Jira Issues", result.Issues.Count());
-        return result.Issues;
+        return result;
     }
 
     public async Task<(string Hash, string Content)> GetAttachmentAsync(string url, CancellationToken cts)
