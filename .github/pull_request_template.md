@@ -16,7 +16,7 @@
 
 Please review and complete the following checklist before submitting the pull request:
 
-- [ ] I have read and followed the project's [contributing guidelines](link-to-contributing-guidelines).
+- [ ] I have read and followed the project's [contributing guidelines](https://github.com/Phil91/jihub/blob/main/CONTRIBUTING.md).
 - [ ] I have tested the changes locally and they are functioning as expected.
 - [ ] I have added necessary documentation or updated the existing documentation.
 - [ ] My code follows the project's code style and conventions.

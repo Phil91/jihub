@@ -6,6 +6,7 @@ public record JiraResult
 (
     int StartAt,
     int MaxResults,
+    int Total,
     IEnumerable<JiraIssue> Issues
 );
 
