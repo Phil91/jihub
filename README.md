@@ -78,6 +78,7 @@ To setup `Jihub`, just follow these steps:
 |                    | JiraPassword         | Your jira password               |
 | GitHub             | Token                | Your generated GitHub PAT               |
 | Parsers:Jira       | EmailMappings        | Mapping between JiraEmail and Github Name, should be in the following format: { "JiraMail": "test.mail.com", "GithubName": "Phil91" }               |
+| Parsers:Jira       | DescriptionTemplate  | Template for the Github description. Valid values currently: Description, Components, Sprints, FixVersions, StoryPoints, Attachments please make sure that those values are listed within {{}}               |
 
 
 By following these steps, you'll be able to use `Jihub` for importing Jira issues to GitHub.
@@ -129,7 +130,6 @@ See the [open issues](https://github.com/phil91/jihub/issues) for a full list of
 
 ## Known Limitations
 
-Currently the limit of results taken from the searchQuery is limited to 1000. This will be changed in the future.
 Due to GitHub Api limitations the import of the issues to GitHub will pause for 20 seconds after 10 created issues before continuing with the next 10.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
