@@ -13,7 +13,8 @@ public record GithubContent
 (
     string Name,
     [property: JsonPropertyName("html_url")]
-    string Url
+    string Url,
+    string Type
 );
 
 public record GitHubIssue

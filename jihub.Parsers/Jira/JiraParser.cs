@@ -81,7 +81,7 @@ public class JiraParser : IJiraParser
             try
             {
                 var asset = await _githubService
-                    .CreateAttachmentAsync(options.ImportOwner!, options.UploadRepo!, fileData, attachment.Filename,
+                    .CreateAttachmentAsync(options.ImportOwner!, options.UploadRepo!, options.ImportPath, fileData, attachment.Filename,
                         cts)
                     .ConfigureAwait(false);
                 assets.Add(asset);
@@ -119,13 +119,13 @@ public class JiraParser : IJiraParser
             x => ReplaceMatch(x, attachmentsToReplace, options.Link));
         description = _linkRegex.Replace(description, ReplaceLinks);
         var components = jiraIssue.Fields.Components.Any() ?
-            string.Join(",", jiraIssue.Fields.Components.Select(x => x.Name)) :
+            string.Join(", ", jiraIssue.Fields.Components.Select(x => x.Name)) :
             "N/A";
         var sprints = jiraIssue.Fields.Sprints != null && jiraIssue.Fields.Sprints.Any() ?
-            string.Join(",", jiraIssue.Fields.Sprints.Select(x => x.Split("name=").LastOrDefault()?.Split(",").FirstOrDefault()?.Trim())) :
+            string.Join(", ", jiraIssue.Fields.Sprints.Select(x => x.Split("name=").LastOrDefault()?.Split(",").FirstOrDefault()?.Trim())) :
             "N/A";
         var fixVersions = jiraIssue.Fields.Versions.Any() ?
-            string.Join(",", jiraIssue.Fields.Versions.Select(x => x.Name)) :
+            string.Join(", ", jiraIssue.Fields.Versions.Select(x => x.Name)) :
             "N/A";
         var storyPoints = jiraIssue.Fields.StoryPoints == null ?
             "N/A"
