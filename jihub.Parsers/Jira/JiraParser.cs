@@ -118,10 +118,10 @@ public class JiraParser : IJiraParser
         var description = _regex.Replace(jiraIssue.Fields.Description.Replace(@"\u{a0}", ""),
             x => ReplaceMatch(x, attachmentsToReplace, options.Link));
         description = _linkRegex.Replace(description, ReplaceLinks);
-        var components = jiraIssue.Fields.Components.Any() ? 
+        var components = jiraIssue.Fields.Components.Any() ?
             string.Join(",", jiraIssue.Fields.Components.Select(x => x.Name)) :
             "N/A";
-        var sprints = jiraIssue.Fields.Sprints != null && jiraIssue.Fields.Sprints.Any() ? 
+        var sprints = jiraIssue.Fields.Sprints != null && jiraIssue.Fields.Sprints.Any() ?
             string.Join(",", jiraIssue.Fields.Sprints.Select(x => x.Split("name=").LastOrDefault()?.Split(",").FirstOrDefault()?.Trim())) :
             "N/A";
         var fixVersions = jiraIssue.Fields.Versions.Any() ?
@@ -132,7 +132,7 @@ public class JiraParser : IJiraParser
             : jiraIssue.Fields.StoryPoints.ToString();
 
         var linkAsContent = options.Link ? string.Empty : "!";
-        var attachments = attachmentsToReplace.Any() ? 
+        var attachments = attachmentsToReplace.Any() ?
             string.Join(", ", assets.Select(a => $"{linkAsContent}[{a.Name}]({a.Url})")) :
             "N/A";
 
