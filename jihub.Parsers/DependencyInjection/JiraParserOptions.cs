@@ -10,6 +10,9 @@ public class JiraParserOptions
 
     [Required]
     public IEnumerable<EmailMapping> EmailMappings { get; set; } = new List<EmailMapping>();
+
+    [Required]
+    public string DescriptionTemplate { get; set; } = null!;
 }
 
 public record EmailMapping(string JiraMail, string GithubName);

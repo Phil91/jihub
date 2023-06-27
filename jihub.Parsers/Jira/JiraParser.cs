@@ -14,7 +14,7 @@ namespace jihub.Parsers.Jira;
 public class JiraParser : IJiraParser
 {
     private readonly Regex _regex = new(@"!(.+?)!", RegexOptions.Compiled, TimeSpan.FromSeconds(2));
-    private readonly Regex _linkRegex = new(@"\[.{1,255}\]", RegexOptions.Compiled, TimeSpan.FromSeconds(2));
+    private readonly Regex _linkRegex = new(@"\[.{1,255}\](?!\([^)]*\))", RegexOptions.Compiled, TimeSpan.FromSeconds(2));
 
     private readonly ILogger<JiraParser> _logger;
     private readonly IGithubService _githubService;
@@ -117,45 +117,35 @@ public class JiraParser : IJiraParser
     {
         var description = _regex.Replace(jiraIssue.Fields.Description.Replace(@"\u{a0}", ""),
             x => ReplaceMatch(x, attachmentsToReplace, options.Link));
-
         description = _linkRegex.Replace(description, ReplaceLinks);
+        var components = jiraIssue.Fields.Components.Any() ? 
+            string.Join(",", jiraIssue.Fields.Components.Select(x => x.Name)) :
+            "N/A";
+        var sprints = jiraIssue.Fields.Sprints != null && jiraIssue.Fields.Sprints.Any() ? 
+            string.Join(",", jiraIssue.Fields.Sprints.Select(x => x.Split("name=").LastOrDefault()?.Split(",").FirstOrDefault()?.Trim())) :
+            "N/A";
+        var fixVersions = jiraIssue.Fields.Versions.Any() ?
+            string.Join(",", jiraIssue.Fields.Versions.Select(x => x.Name)) :
+            "N/A";
+        var storyPoints = jiraIssue.Fields.StoryPoints == null ?
+            "N/A"
+            : jiraIssue.Fields.StoryPoints.ToString();
 
-        var sb = new StringBuilder(description);
-        sb.AppendLine().AppendLine();
+        var linkAsContent = options.Link ? string.Empty : "!";
+        var attachments = attachmentsToReplace.Any() ? 
+            string.Join(", ", assets.Select(a => $"{linkAsContent}[{a.Name}]({a.Url})")) :
+            "N/A";
 
-        if (jiraIssue.Fields.Components.Any())
-        {
-            sb.AppendLine($"_Components_: {string.Join(",", jiraIssue.Fields.Components.Select(x => x.Name))}");
-        }
-
-        if (jiraIssue.Fields.Sprints != null && jiraIssue.Fields.Sprints.Any())
-        {
-            sb.AppendLine(
-                $"_Sprints_: {string.Join(",", jiraIssue.Fields.Sprints.Select(x => x.Split("name=").LastOrDefault()?.Split(",").FirstOrDefault()?.Trim()))}");
-        }
-
-        if (jiraIssue.Fields.Versions.Any())
-        {
-            sb.AppendLine($"_Fix Versions_: {string.Join(",", jiraIssue.Fields.Versions.Select(x => x.Name))}");
-        }
-
-        if (jiraIssue.Fields.StoryPoints != null)
-        {
-            sb.AppendLine($"_StoryPoints_: {jiraIssue.Fields.StoryPoints}");
-        }
-
-        if (attachmentsToReplace.Any())
-        {
-            var linkAsContent = options.Link ? string.Empty : "!";
-            sb.AppendLine($"_Attachments_: {string.Join(", ", assets.Select(a => $"{linkAsContent}[{a.Name}]({a.Url})"))}");
-        }
-
-        description = sb.ToString();
-        return description;
+        return _settings.Jira.DescriptionTemplate
+            .Replace("{{Description}}", description)
+            .Replace("{{Components}}", components)
+            .Replace("{{Sprints}}", sprints)
+            .Replace("{{FixVersions}}", fixVersions)
+            .Replace("{{StoryPoints}}", storyPoints)
+            .Replace("{{Attachments}}", attachments);
     }
 
-    private async Task<IEnumerable<GitHubLabel>> GetGithubLabels(JiraIssue jiraIssue, JihubOptions options, List<GitHubLabel> existingLabels,
-        CancellationToken cts)
+    private async Task<IEnumerable<GitHubLabel>> GetGithubLabels(JiraIssue jiraIssue, JihubOptions options, List<GitHubLabel> existingLabels, CancellationToken cts)
     {
         var labels = jiraIssue.Fields.Labels
             .Select(x => new GitHubLabel(x, string.Empty))
