@@ -47,7 +47,7 @@ public class Worker
             var content = Enumerable.Empty<GithubContent>();
             if (options.Export)
             {
-                content = await githubService.GetRepoContent(options.ImportOwner!, options.UploadRepo!, cts).ConfigureAwait(false);
+                content = await githubService.GetRepoContent(options.ImportOwner!, options.UploadRepo!, "contents", cts).ConfigureAwait(false);
             }
 
             var githubInformation = await githubService.GetRepositoryData(options.Owner, options.Repo, cts).ConfigureAwait(false);

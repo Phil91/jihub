@@ -112,6 +112,7 @@ dotnet jihub.Worker.dll
 | Export             | -e         | --export        | No       | false   | If set, all external resources such as images will be exported to the given repository     |
 | UploadRepo         | -u         | --upload-repo   | No       |         | The repository where the Jira assets will be uploaded                                      |
 | ImportOwner        | -i         | --import-owner  | No       |         | The owner of the repository where the Jira assets should be uploaded                       |
+| ImportPath         | -p         | --import-path   | No       |         | The path of the directory where the Jira assets should be uploaded                       |
 
 Please note that the "Required" column indicates whether a parameter is mandatory or not, and the "Default" column shows the default value if not specified.
 

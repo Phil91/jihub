@@ -20,8 +20,17 @@ public class GithubService : IGithubService
         _httpClient = httpClientFactory.CreateClient(nameof(GithubService));
     }
 
-    public async Task<IEnumerable<GithubContent>> GetRepoContent(string owner, string repo, CancellationToken cts) =>
-        await Get<GithubContent>("contents", owner, repo, cts).ConfigureAwait(false);
+    public async Task<IEnumerable<GithubContent>> GetRepoContent(string owner, string repo, string path, CancellationToken cts)
+    {
+        var content = await Get<GithubContent>(path, owner, repo, cts).ConfigureAwait(false);
+        var files = content.Where(x => x.Type == "file").ToList();
+        foreach (var dir in content.Where(x => x.Type == "dir"))
+        {
+            files.AddRange(await GetRepoContent(owner, repo, $"{path}/{dir.Name}", cts).ConfigureAwait(false));
+        }
+
+        return files;
+    }
 
     public async Task<GitHubInformation> GetRepositoryData(string owner, string repo, CancellationToken cts)
     {
@@ -184,9 +193,10 @@ public class GithubService : IGithubService
         }
     }
 
-    public async Task<GithubAsset> CreateAttachmentAsync(string owner, string repo, (string Hash, string FileContent) fileData, string name, CancellationToken cts)
+    public async Task<GithubAsset> CreateAttachmentAsync(string owner, string repo, string importPath, (string Hash, string FileContent) fileData, string name, CancellationToken cts)
     {
-        var url = $"repos/{owner}/{repo}/contents/{name}";
+        var directory = importPath == null ? string.Empty : $"{importPath}/";
+        var url = $"repos/{owner}/{repo}/contents/{directory}{name}";
         var content = new UploadFileContent(
             $"Upload file {name}",
             HttpUtility.HtmlEncode(fileData.FileContent)

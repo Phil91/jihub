@@ -62,6 +62,12 @@ namespace jihub.Base
         public string? ImportOwner { get; set; } = null;
 
         /// <summary>
+        /// The path of the directory the attachments should be imported to
+        /// </summary>
+        [Option(shortName: 'p', longName: "import-path", Required = false, HelpText = "The path of the directory the attachments should be imported to.")]
+        public string? ImportPath { get; set; } = null;
+
+        /// <summary>
         /// Checks the options if everything is correct
         /// </summary>
         /// <exception cref="ConfigurationException">Exception if the configuration is incorrect</exception>
