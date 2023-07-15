@@ -32,7 +32,8 @@ public record GitHubIssue
 public record GitHubLabel
 (
     string Name,
-    string Description
+    string Description,
+    string Color
 );
 
 public record GitHubMilestone(

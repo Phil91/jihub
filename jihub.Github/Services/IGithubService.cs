@@ -9,6 +9,6 @@ public interface IGithubService
     Task<GitHubMilestone> CreateMilestoneAsync(string name, string owner, string repo, CancellationToken cts);
     Task CreateIssuesAsync(string owner, string repo, IEnumerable<CreateGitHubIssue> issues, CancellationToken cts);
     Task<Committer> GetCommitter();
-    Task<GithubAsset> CreateAttachmentAsync(string owner, string repo, string importPath, (string Hash, string FileContent) fileData, string name, CancellationToken cts);
+    Task<GithubAsset> CreateAttachmentAsync(string owner, string repo, string? importPath, string? branch, (string Hash, string FileContent) fileData, string name, CancellationToken cts);
     Task<IEnumerable<GithubContent>> GetRepoContent(string owner, string repo, string path, CancellationToken cts);
 }

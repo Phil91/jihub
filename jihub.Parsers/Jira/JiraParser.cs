@@ -70,10 +70,10 @@ public class JiraParser : IJiraParser
         var assets = new List<GithubAsset>();
         foreach (var attachment in jiraIssue.Fields.Attachment)
         {
-            var content = githubContent.SingleOrDefault(x => x.Name.Equals(attachment.Filename, StringComparison.OrdinalIgnoreCase));
+            var content = githubContent.SingleOrDefault(x => x.Name.Equals($"{jiraIssue.Key}-{attachment.Filename}", StringComparison.OrdinalIgnoreCase));
             if (!options.Export || content != null)
             {
-                assets.Add(new GithubAsset(content == null ? attachment.Url : content.Url, attachment.Filename));
+                assets.Add(new GithubAsset(content == null ? attachment.Url : content.Url, $"{jiraIssue.Key}-{attachment.Filename}"));
                 continue;
             }
 
@@ -81,8 +81,7 @@ public class JiraParser : IJiraParser
             try
             {
                 var asset = await _githubService
-                    .CreateAttachmentAsync(options.ImportOwner!, options.UploadRepo!, options.ImportPath, fileData, attachment.Filename,
-                        cts)
+                    .CreateAttachmentAsync(options.ImportOwner!, options.UploadRepo!, options.ImportPath, options.Branch, fileData, $"{jiraIssue.Key}-{attachment.Filename}", cts)
                     .ConfigureAwait(false);
                 assets.Add(asset);
             }
@@ -132,7 +131,7 @@ public class JiraParser : IJiraParser
             : jiraIssue.Fields.StoryPoints.ToString();
 
         var linkAsContent = options.Link ? string.Empty : "!";
-        var attachments = attachmentsToReplace.Any() ?
+        var attachments = assets.Any() ?
             string.Join(", ", assets.Select(a => $"{linkAsContent}[{a.Name}]({a.Url})")) :
             "N/A";
 
@@ -148,12 +147,13 @@ public class JiraParser : IJiraParser
     private async Task<IEnumerable<GitHubLabel>> GetGithubLabels(JiraIssue jiraIssue, JihubOptions options, List<GitHubLabel> existingLabels, CancellationToken cts)
     {
         var labels = jiraIssue.Fields.Labels
-            .Select(x => new GitHubLabel(x, string.Empty))
+            .Select(x => new GitHubLabel(x, string.Empty, "c5c5c5"))
             .Concat(new GitHubLabel[]
             {
                 new(
                     jiraIssue.Fields.Issuetype.Name,
-                    jiraIssue.Fields.Issuetype.Description
+                    jiraIssue.Fields.Issuetype.Description,
+                    "c5c5c5"
                 )
             });
         var missingLabels = labels

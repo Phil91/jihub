@@ -67,6 +67,9 @@ namespace jihub.Base
         [Option(shortName: 'p', longName: "import-path", Required = false, HelpText = "The path of the directory the attachments should be imported to.")]
         public string? ImportPath { get; set; } = null;
 
+        [Option(shortName: 'b', longName: "branch", Required = false, HelpText = "The branch of the repository the attachments should be imported to.")]
+        public string? Branch { get; set; }
+
         /// <summary>
         /// Checks the options if everything is correct
         /// </summary>
