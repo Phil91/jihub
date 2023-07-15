@@ -195,13 +195,14 @@ public class GithubService : IGithubService
         }
     }
 
-    public async Task<GithubAsset> CreateAttachmentAsync(string owner, string repo, string importPath, (string Hash, string FileContent) fileData, string name, CancellationToken cts)
+    public async Task<GithubAsset> CreateAttachmentAsync(string owner, string repo, string? importPath, string? branch, (string Hash, string FileContent) fileData, string name, CancellationToken cts)
     {
         var directory = importPath == null ? string.Empty : $"{importPath}/";
         var url = $"repos/{owner}/{repo}/contents/{directory}{name}";
         var content = new UploadFileContent(
             $"Upload file {name}",
-            HttpUtility.HtmlEncode(fileData.FileContent)
+            HttpUtility.HtmlEncode(fileData.FileContent),
+            branch ?? "main"
         );
         var response = await _httpClient.PutAsJsonAsync(url, content, cts).ConfigureAwait(false);
 

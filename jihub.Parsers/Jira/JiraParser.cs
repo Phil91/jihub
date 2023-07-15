@@ -81,8 +81,7 @@ public class JiraParser : IJiraParser
             try
             {
                 var asset = await _githubService
-                    .CreateAttachmentAsync(options.ImportOwner!, options.UploadRepo!, options.ImportPath, fileData, $"{jiraIssue.Key}-{attachment.Filename}",
-                        cts)
+                    .CreateAttachmentAsync(options.ImportOwner!, options.UploadRepo!, options.ImportPath, options.Branch, fileData, $"{jiraIssue.Key}-{attachment.Filename}", cts)
                     .ConfigureAwait(false);
                 assets.Add(asset);
             }
