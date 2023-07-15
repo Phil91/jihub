@@ -9,7 +9,8 @@ public record UploadFileContent(
     string Message,
     // Committer Committer,
     // string Sha,
-    string Content
+    string Content,
+    string Branch
 );
 
 /// <summary>
