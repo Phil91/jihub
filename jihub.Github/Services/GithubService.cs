@@ -36,14 +36,16 @@ public class GithubService : IGithubService
     {
         var allIssues = new List<GitHubIssue>();
         var page = 1;
-        var issuesPerPage = 100;
+        const int issuesPerPage = 100;
         while (true)
         {
-            var issues = await Get<GitHubIssue>("issues", owner, repo, cts, $"state=all&per_page={100}&page={page}").ConfigureAwait(false);
-            if (!issues.Any() || issues.Count() < issuesPerPage)
-                break;
-
+            var issues = await Get<GitHubIssue>("issues", owner, repo, cts, $"state=all&per_page={issuesPerPage}&page={page}").ConfigureAwait(false);
             allIssues.AddRange(issues);
+
+            if (!issues.Any() || issues.Count() < issuesPerPage)
+            {
+                break;
+            }
 
             page++;
         }
@@ -214,7 +216,7 @@ public class GithubService : IGithubService
             throw new("Couldn't parse Github Asset");
         }
 
-        return assetContent.Content;
+        return new GithubAsset(assetContent.Content.Url.Replace("import-test", "main"), assetContent.Content.Name);
     }
 
     public async Task<Committer> GetCommitter()
