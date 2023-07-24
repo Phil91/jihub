@@ -2,6 +2,7 @@
 using jihub.Github.Models;
 using jihub.Github.Services;
 using jihub.Jira;
+using jihub.Jira.Models;
 using jihub.Parsers.Jira;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -56,7 +57,19 @@ public class Worker
             _logger.LogInformation("The following issues were not imported because they are already available in Github {Issues}", string.Join(",", excludedJiraIssues.Select(x => x.Key)));
 
             var convertedIssues = await parser.ConvertIssues(jiraIssues.Except(excludedJiraIssues), options, content, githubInformation.Labels.ToList(), githubInformation.Milestones.ToList(), cts).ConfigureAwait(false);
-            await githubService.CreateIssuesAsync(options.Owner, options.Repo, convertedIssues, cts).ConfigureAwait(false);
+            var createdIssues = await githubService.CreateIssuesAsync(options.Owner, options.Repo, convertedIssues, cts).ConfigureAwait(false);
+
+            if (options.LinkChildren)
+            {
+                var childIssues = GetLinks(jiraIssues, "Parent of");
+                await githubService.LinkChildren(options.Owner, options.Repo, childIssues, githubInformation.Issues, createdIssues, cts).ConfigureAwait(false);
+            }
+
+            if (options.LinkRelated)
+            {
+                var relatedIssues = GetLinks(jiraIssues, "relates to");
+                await githubService.AddRelatesComment(options.Owner, options.Repo, relatedIssues, githubInformation.Issues, createdIssues, cts).ConfigureAwait(false);
+            }
         }
         catch (Exception ex)
         {
@@ -65,5 +78,31 @@ public class Worker
         }
 
         return 0;
+    }
+
+    private static Dictionary<string, List<string>> GetLinks(IEnumerable<JiraIssue> jiraIssues, string linkType)
+    {
+        var dict = new Dictionary<string, List<string>>();
+        foreach (var (key, issueFields) in jiraIssues.Where(x => x.Fields.IssueLinks != null))
+        {
+            var links = issueFields.IssueLinks!
+                .Where(link =>
+                    (link.Type.Inward.Equals(linkType, StringComparison.OrdinalIgnoreCase) && link.InwardIssue != null) ||
+                    (link.Type.Outward.Equals(linkType, StringComparison.OrdinalIgnoreCase) && link.OutwardIssue != null)
+                )
+                .Select(link => link.InwardIssue ?? link.OutwardIssue)
+                .Select(x => x!.Key)
+                .ToList();
+            if (!dict.ContainsKey(key))
+            {
+                dict.Add(key, links);
+            }
+            else
+            {
+                dict[key].AddRange(links);
+            }
+        }
+
+        return dict;
     }
 }

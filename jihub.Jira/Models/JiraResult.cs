@@ -28,7 +28,9 @@ public record IssueFields
     [property: JsonPropertyName("customfield_10028")]
     double? StoryPoints,
     [property: JsonPropertyName("customfield_10020")]
-    IEnumerable<string>? Sprints
+    IEnumerable<string>? Sprints,
+    [property: JsonPropertyName("issuelinks")]
+    IEnumerable<JiraIssueLink>? IssueLinks
 );
 
 public record JiraAttachment
@@ -51,3 +53,14 @@ public record FixVersion(string Name);
 public record Version(string Name);
 
 public record Component(string Name);
+
+public record JiraIssueLink
+(
+    JiraIssueLinkType Type,
+    LinkedIssue? OutwardIssue,
+    LinkedIssue? InwardIssue
+);
+
+public record JiraIssueLinkType(string Inward, string Outward);
+
+public record LinkedIssue(string Key);

@@ -16,13 +16,15 @@ namespace jihub.Base
         /// <summary>
         /// Username of the github user / organisation that hosts the project
         /// </summary>
-        [Option(shortName: 'o', longName: "owner", Required = true, HelpText = "Github Repository Owner (User or Organisation)")]
+        [Option(shortName: 'o', longName: "owner", Required = true,
+            HelpText = "Github Repository Owner (User or Organisation)")]
         public string Owner { get; set; } = null!;
 
         /// <summary>
         /// The max results when requesting jira
         /// </summary>
-        [Option(shortName: 'm', longName: "max-results", Required = false, HelpText = "The max jira results", Default = 500)]
+        [Option(shortName: 'm', longName: "max-results", Required = false, HelpText = "The max jira results",
+            Default = 500)]
         public int MaxResults { get; set; } = 500;
 
         /// <summary>
@@ -34,41 +36,61 @@ namespace jihub.Base
         /// <summary>
         /// The search query to get only the needed jira tickets
         /// </summary>
-        [Option(shortName: 'l', longName: "link", Required = false, HelpText = "If set all external resources such as images will be refered as a link in the description", Default = false)]
+        [Option(shortName: 'l', longName: "link", Required = false,
+            HelpText = "If set all external resources such as images will be refered as a link in the description",
+            Default = false)]
         public bool Link { get; set; }
 
         /// <summary>
         /// The search query to get only the needed jira tickets
         /// </summary>
-        [Option(shortName: 'c', longName: "content-link", Required = false, HelpText = "If set all external resources such as images will be linked as content in the description", Default = false)]
+        [Option(shortName: 'c', longName: "content-link", Required = false,
+            HelpText = "If set all external resources such as images will be linked as content in the description",
+            Default = false)]
         public bool ContentLink { get; set; }
 
         /// <summary>
         /// The search query to get only the needed jira tickets
         /// </summary>
-        [Option(shortName: 'e', longName: "export", Required = false, HelpText = "If set all external resources such as images will be exported to the given repository", Default = false)]
+        [Option(shortName: 'e', longName: "export", Required = false,
+            HelpText = "If set all external resources such as images will be exported to the given repository",
+            Default = false)]
         public bool Export { get; set; }
 
         /// <summary>
         /// The repository where the assets of jira gets uploaded
         /// </summary>
-        [Option(shortName: 'u', longName: "upload-repo", Required = false, HelpText = "Upload repository for the jira assets.")]
+        [Option(shortName: 'u', longName: "upload-repo", Required = false,
+            HelpText = "Upload repository for the jira assets.")]
         public string? UploadRepo { get; set; } = null;
 
         /// <summary>
         /// The repository where the assets of jira gets uploaded
         /// </summary>
-        [Option(shortName: 'i', longName: "import-owner", Required = false, HelpText = "Owner of the repository the assets should be uploaded to.")]
+        [Option(shortName: 'i', longName: "import-owner", Required = false,
+            HelpText = "Owner of the repository the assets should be uploaded to.")]
         public string? ImportOwner { get; set; } = null;
 
         /// <summary>
         /// The path of the directory the attachments should be imported to
         /// </summary>
-        [Option(shortName: 'p', longName: "import-path", Required = false, HelpText = "The path of the directory the attachments should be imported to.")]
+        [Option(shortName: 'p', longName: "import-path", Required = false,
+            HelpText = "The path of the directory the attachments should be imported to.")]
         public string? ImportPath { get; set; } = null;
 
-        [Option(shortName: 'b', longName: "branch", Required = false, HelpText = "The branch of the repository the attachments should be imported to.")]
+        [Option(shortName: 'b', longName: "branch", Required = false,
+            HelpText = "The branch of the repository the attachments should be imported to.")]
         public string? Branch { get; set; }
+
+        [Option(longName: "linkChildren", Required = false,
+            HelpText = "If set the children will be linked in the body.",
+            Default = false)]
+        public bool LinkChildren { get; set; }
+
+        [Option(longName: "linkRelated", Required = false,
+            HelpText = "If set the related issues will be linked in the comments.",
+            Default = false)]
+        public bool LinkRelated { get; set; }
 
         /// <summary>
         /// Checks the options if everything is correct

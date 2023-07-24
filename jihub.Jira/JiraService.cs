@@ -49,7 +49,7 @@ public class JiraService : IJiraService
 
     private async Task<JiraResult> RequestJiraIssues(string searchQuery, int start, int maxResults, CancellationToken cts)
     {
-        var url = $"?jql={searchQuery}&start={start}&maxResults={maxResults}&fields=key,labels,issuetype,project,status,description,summary,components,fixVersions,versions,customfield_10028,customfield_10020,attachment,assignee";
+        var url = $"?jql={searchQuery}&start={start}&maxResults={maxResults}&fields=key,labels,issuetype,project,status,description,summary,components,fixVersions,versions,customfield_10028,customfield_10020,attachment,assignee,issuelinks";
 
         _logger.LogInformation("Requesting Jira Issues");
         var result = await _httpClient.GetFromJsonAsync<JiraResult>(url, Options, cts).ConfigureAwait(false);

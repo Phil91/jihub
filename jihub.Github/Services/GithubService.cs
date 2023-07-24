@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
 using System.Web;
 using jihub.Github.Models;
@@ -10,6 +9,9 @@ namespace jihub.Github.Services;
 
 public class GithubService : IGithubService
 {
+    private const int batchSize = 10;
+    private const int delaySeconds = 20;
+
     private static readonly JsonSerializerOptions Options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
     private readonly ILogger<GithubService> _logger;
     private readonly HttpClient _httpClient;
@@ -30,6 +32,100 @@ public class GithubService : IGithubService
         }
 
         return files;
+    }
+
+    /// <inheritdoc />
+    public async Task LinkChildren(string owner, string repo,
+        Dictionary<string, List<string>> linkedIssues,
+        IEnumerable<GitHubIssue> existingIssues,
+        IEnumerable<GitHubIssue> createdIssues,
+        CancellationToken cancellationToken)
+    {
+        int counter = 0;
+        var allIssues = existingIssues.Concat(createdIssues).ToArray();
+        foreach (var linkedIssue in linkedIssues)
+        {
+            if (!linkedIssue.Value.Any())
+            {
+                continue;
+            }
+
+            var matchingIssues = linkedIssue.Value
+                .Select(key => createdIssues.FirstOrDefault(i => i.Title.Contains($"(ext: {key})")))
+                .Where(i => i != null)
+                .Select(i => $"- [ ] #{i!.Number}");
+            var issueToUpdate = allIssues.FirstOrDefault(x => x.Title.Contains($"(ext: {linkedIssue.Key})"));
+            if (issueToUpdate == null || !matchingIssues.Any())
+            {
+                continue;
+            }
+
+            var updatedBody = issueToUpdate.Body ?? string.Empty;
+            if (!updatedBody.Contains("### Children"))
+            {
+                updatedBody = $"{updatedBody}\n\n### Children";
+            }
+
+            updatedBody = $"{updatedBody}\n{string.Join("\n", matchingIssues)}";
+            await UpdateIssue(owner, repo, issueToUpdate.Number, new { body = updatedBody }, cancellationToken).ConfigureAwait(false);
+
+            counter++;
+            if (counter % batchSize != 0)
+            {
+                continue;
+            }
+
+            _logger.LogInformation("Delaying 20 seconds for github to catch some air...");
+            await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken).ConfigureAwait(false);
+            counter = 0;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task AddRelatesComment(string owner, string repo, Dictionary<string, List<string>> relatedIssues, IEnumerable<GitHubIssue> existingIssues,
+        IEnumerable<GitHubIssue> createdIssues, CancellationToken cancellationToken)
+    {
+        async Task CreateComment(GitHubComment comment, int issueNumber)
+        {
+            var url = $"repos/{owner}/{repo}/issues/{issueNumber}/comments";
+            var result = await _httpClient.PostAsJsonAsync(url, comment, Options, cancellationToken).ConfigureAwait(false);
+            if (result.StatusCode != HttpStatusCode.Created)
+            {
+                _logger.LogError("Couldn't create comment: {Body}", comment.Body);
+            }
+        }
+
+        int counter = 0;
+        var allIssues = existingIssues.Concat(createdIssues).ToArray();
+        foreach (var relatedIssue in relatedIssues)
+        {
+            if (!relatedIssue.Value.Any())
+            {
+                continue;
+            }
+
+            var matchingIssues = relatedIssue.Value
+                .Select(key => createdIssues.FirstOrDefault(i => i.Title.Contains($"(ext: {key})")))
+                .Where(i => i != null)
+                .Select(i => $"#{i!.Number}");
+            var issueToUpdate = allIssues.FirstOrDefault(x => x.Title.Contains($"(ext: {relatedIssue.Key})"));
+            if (issueToUpdate == null || !matchingIssues.Any())
+            {
+                continue;
+            }
+
+            await CreateComment(new GitHubComment($"Relates to: {string.Join(", ", matchingIssues)}"), issueToUpdate.Number).ConfigureAwait(false);
+
+            counter++;
+            if (counter % batchSize != 0)
+            {
+                continue;
+            }
+
+            _logger.LogInformation("Delaying 20 seconds for github to catch some air...");
+            await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken).ConfigureAwait(false);
+            counter = 0;
+        }
     }
 
     public async Task<GitHubInformation> GetRepositoryData(string owner, string repo, CancellationToken cts)
@@ -142,17 +238,20 @@ public class GithubService : IGithubService
         throw new($"Couldn't create milestone: {name}");
     }
 
-    public async Task CreateIssuesAsync(string owner, string repo, IEnumerable<CreateGitHubIssue> issues, CancellationToken cts)
+    public async Task<IEnumerable<GitHubIssue>> CreateIssuesAsync(string owner, string repo, IEnumerable<CreateGitHubIssue> issues, CancellationToken cts)
     {
-        const int batchSize = 10;
-        const int delaySeconds = 20;
-
-        var counter = 1;
+        var counter = 0;
+        var createdIssues = new List<GitHubIssue>();
         foreach (var issue in issues)
         {
-            await CreateIssue(issue, cts).ConfigureAwait(false);
+            var createdIssue = await CreateIssue(owner, repo, issue, cts).ConfigureAwait(false);
+            if (createdIssue != null)
+            {
+                createdIssues.Add(createdIssue);
+            }
+
             counter++;
-            if (counter % batchSize + 1 != 0)
+            if (counter % batchSize != 0)
             {
                 continue;
             }
@@ -162,36 +261,44 @@ public class GithubService : IGithubService
             counter = 0;
         }
 
-        async Task CreateIssue(CreateGitHubIssue issue, CancellationToken ct)
+        return createdIssues;
+    }
+
+    private async Task<GitHubIssue?> CreateIssue(string owner, string repo, CreateGitHubIssue issue, CancellationToken ct)
+    {
+        var url = $"repos/{owner}/{repo}/issues";
+        _logger.LogInformation("Creating issue: {issue}", issue.Title);
+        var result = await _httpClient.PostAsJsonAsync(url, issue, Options, ct).ConfigureAwait(false);
+        if (!result.IsSuccessStatusCode)
         {
-            var url = $"repos/{owner}/{repo}/issues";
+            _logger.LogError("Couldn't create issue: {label}", issue.Title);
+            return null;
+        }
 
-            _logger.LogInformation("Creating issue: {issue}", issue.Title);
-            var result = await _httpClient.PostAsJsonAsync(url, issue, Options, ct).ConfigureAwait(false);
-            if (!result.IsSuccessStatusCode)
-            {
-                _logger.LogError("Couldn't create issue: {label}", issue.Title);
-                return;
-            }
+        var response = await result.Content.ReadFromJsonAsync<GitHubIssue>(Options, ct).ConfigureAwait(false);
+        if (response == null)
+        {
+            _logger.LogError("State of issue {IssueId} could not be changed", issue.Title);
+            return null;
+        }
 
-            if (issue.State == GithubState.Open)
-            {
-                return;
-            }
+        if (issue.State == GithubState.Open)
+        {
+            return response;
+        }
 
-            var response = await result.Content.ReadFromJsonAsync<GitHubIssue>(Options, ct).ConfigureAwait(false);
-            if (response == null)
-            {
-                _logger.LogError("State of issue {IssueId} could not be changed", issue.Title);
-                return;
-            }
+        await UpdateIssue(owner, repo, response.Number, new { state = "closed" }, ct);
 
-            var jsonContent = new StringContent("{\"state\":\"closed\"}", Encoding.UTF8, "application/json");
-            var updateResult = await _httpClient.PatchAsync($"{url}/{response.Number}", jsonContent, ct).ConfigureAwait(false);
-            if (!updateResult.IsSuccessStatusCode)
-            {
-                _logger.LogError("State of issue {IssueId} could not be changed", issue.Title);
-            }
+        return response;
+    }
+
+    private async Task UpdateIssue(string owner, string repo, int id, object data, CancellationToken ct)
+    {
+        var url = $"repos/{owner}/{repo}/issues/{id}";
+        var updateResult = await _httpClient.PatchAsJsonAsync(url, data, Options, ct).ConfigureAwait(false);
+        if (!updateResult.IsSuccessStatusCode)
+        {
+            _logger.LogError("Update of issue {IssueId} failed", id);
         }
     }
 

@@ -1,5 +1,4 @@
-﻿using System.Text;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using jihub.Base;
 using jihub.Github.Models;
 using jihub.Github.Services;
@@ -172,7 +171,7 @@ public class JiraParser : IJiraParser
         var stateKey = _settings.Jira.StateMapping.Any(kvp => kvp.Value.Contains(jiraIssue.Fields.Status.Name, StringComparer.OrdinalIgnoreCase));
         if (!stateKey)
         {
-            _logger.LogError("Could not find {State} in state mapping", jiraIssue.Fields.Status.Name);
+            _logger.LogError("Could not find {State} in state mapping, automatically set to open", jiraIssue.Fields.Status.Name);
         }
         else
         {
