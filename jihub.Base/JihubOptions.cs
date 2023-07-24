@@ -86,7 +86,7 @@ namespace jihub.Base
             HelpText = "If set the children will be linked in the body.",
             Default = false)]
         public bool LinkChildren { get; set; }
-        
+
         [Option(longName: "linkRelated", Required = false,
             HelpText = "If set the related issues will be linked in the comments.",
             Default = false)]
