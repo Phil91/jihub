@@ -36,6 +36,10 @@ public record GitHubLabel
     string Color
 );
 
+public record GitHubComment(
+    string Body
+);
+
 public record GitHubMilestone(
     string Title,
     int Number,
