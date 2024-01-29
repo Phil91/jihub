@@ -5,6 +5,7 @@ using jihub.Jira;
 using jihub.Jira.Models;
 using jihub.Parsers.Jira;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace jihub;
@@ -12,63 +13,66 @@ namespace jihub;
 /// <summary>
 /// Worker to process the jql query.
 /// </summary>
-public class Worker
+public class Worker : IHostedService
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly IJiraService _jiraService;
+    private readonly IGithubService _githubService;
+    private readonly IJiraParser _jiraParser;
+    private readonly JihubOptions _jihubOptions;
     private readonly ILogger<Worker> _logger;
 
     /// <summary>
     /// Creates a new instance of <see cref="Worker"/>
     /// </summary>
-    /// <param name="serviceScopeFactory">access to the services</param>
+    /// <param name="jiraParser"></param>
+    /// <param name="jihubOptions"></param>
     /// <param name="logger">the logger</param>
+    /// <param name="jiraService"></param>
+    /// <param name="githubService"></param>
     public Worker(
-        IServiceScopeFactory serviceScopeFactory,
+        IJiraService jiraService,
+        IGithubService githubService,
+        IJiraParser jiraParser,
+        JihubOptions jihubOptions,
         ILogger<Worker> logger)
     {
-        _serviceScopeFactory = serviceScopeFactory;
+        _jiraService = jiraService;
+        _githubService = githubService;
+        _jiraParser = jiraParser;
+        _jihubOptions = jihubOptions;
         _logger = logger;
     }
 
-    /// <summary>
-    /// Handles the conversion from jira to github issues and the import to github
-    /// </summary>
-    /// <param name="options">the options given by the user</param>
-    /// <param name="cts">Cancellation Token</param>
-    public async Task<int> ExecuteAsync(JihubOptions options, CancellationToken cts)
+    /// <inheritdoc />
+    public async Task StartAsync(CancellationToken cts)
     {
         try
         {
-            using var scope = _serviceScopeFactory.CreateScope();
-            var jiraService = scope.ServiceProvider.GetRequiredService<IJiraService>();
-            var githubService = scope.ServiceProvider.GetRequiredService<IGithubService>();
-            var parser = scope.ServiceProvider.GetRequiredService<IJiraParser>();
-
-            var jiraIssues = await jiraService.GetAsync(options.SearchQuery, options.MaxResults, cts).ConfigureAwait(false);
+            var jiraIssues = await _jiraService.GetAsync(_jihubOptions.SearchQuery, _jihubOptions.MaxResults, cts).ConfigureAwait(false);
             var content = Enumerable.Empty<GithubContent>();
-            if (options.Export)
+            if (_jihubOptions.Export)
             {
-                content = await githubService.GetRepoContent(options.ImportOwner!, options.UploadRepo!, "contents", cts).ConfigureAwait(false);
+                content = await _githubService.GetRepoContent(_jihubOptions.ImportOwner!, _jihubOptions.UploadRepo!, "contents", cts).ConfigureAwait(false);
             }
 
-            var githubInformation = await githubService.GetRepositoryData(options.Owner, options.Repo, cts).ConfigureAwait(false);
+            var githubInformation = await _githubService.GetRepositoryData(_jihubOptions.Owner, _jihubOptions.Repo, cts).ConfigureAwait(false);
 
             var excludedJiraIssues = jiraIssues.Where(x => githubInformation.Issues.Any(i => i.Title.Contains($"(ext: {x.Key})")));
             _logger.LogInformation("The following issues were not imported because they are already available in Github {Issues}", string.Join(",", excludedJiraIssues.Select(x => x.Key)));
 
-            var convertedIssues = await parser.ConvertIssues(jiraIssues.Except(excludedJiraIssues), options, content, githubInformation.Labels.ToList(), githubInformation.Milestones.ToList(), cts).ConfigureAwait(false);
-            var createdIssues = await githubService.CreateIssuesAsync(options.Owner, options.Repo, convertedIssues, cts).ConfigureAwait(false);
+            var convertedIssues = await _jiraParser.ConvertIssues(jiraIssues.Except(excludedJiraIssues), _jihubOptions, content, githubInformation.Labels.ToList(), githubInformation.Milestones.ToList(), cts).ConfigureAwait(false);
+            var createdIssues = await _githubService.CreateIssuesAsync(_jihubOptions.Owner, _jihubOptions.Repo, convertedIssues, cts).ConfigureAwait(false);
 
-            if (options.LinkChildren)
+            if (_jihubOptions.LinkChildren)
             {
                 var childIssues = GetLinks(jiraIssues, "Parent of");
-                await githubService.LinkChildren(options.Owner, options.Repo, childIssues, githubInformation.Issues, createdIssues, cts).ConfigureAwait(false);
+                await _githubService.LinkChildren(_jihubOptions.Owner, _jihubOptions.Repo, childIssues, githubInformation.Issues, createdIssues, cts).ConfigureAwait(false);
             }
 
-            if (options.LinkRelated)
+            if (_jihubOptions.LinkRelated)
             {
                 var relatedIssues = GetLinks(jiraIssues, "relates to");
-                await githubService.AddRelatesComment(options.Owner, options.Repo, relatedIssues, githubInformation.Issues, createdIssues, cts).ConfigureAwait(false);
+                await _githubService.AddRelatesComment(_jihubOptions.Owner, _jihubOptions.Repo, relatedIssues, githubInformation.Issues, createdIssues, cts).ConfigureAwait(false);
             }
         }
         catch (Exception ex)
@@ -76,8 +80,6 @@ public class Worker
             Environment.ExitCode = 1;
             _logger.LogError(ex, "processing failed with following Exception {ExceptionMessage}", ex.Message);
         }
-
-        return 0;
     }
 
     private static Dictionary<string, List<string>> GetLinks(IEnumerable<JiraIssue> jiraIssues, string linkType)
@@ -104,5 +106,11 @@ public class Worker
         }
 
         return dict;
+    }
+
+    /// <inheritdoc />
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
     }
 }

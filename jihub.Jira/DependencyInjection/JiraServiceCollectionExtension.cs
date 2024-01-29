@@ -11,6 +11,7 @@ public static class JiraServiceCollectionExtension
     {
         services.AddOptions<JiraServiceSettings>()
             .Bind(section)
+            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         var sp = services.BuildServiceProvider();

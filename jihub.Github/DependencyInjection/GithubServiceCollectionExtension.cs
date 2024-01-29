@@ -12,6 +12,7 @@ public static class GithubServiceCollectionExtension
     {
         services.AddOptions<GithubServiceSettings>()
             .Bind(section)
+            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         var sp = services.BuildServiceProvider();

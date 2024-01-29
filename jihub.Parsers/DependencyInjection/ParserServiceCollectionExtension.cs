@@ -10,6 +10,7 @@ public static class ParserServiceCollectionExtension
     {
         services.AddOptions<ParserSettings>()
             .Bind(section)
+            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         services
