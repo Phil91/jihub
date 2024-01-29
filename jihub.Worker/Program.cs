@@ -35,9 +35,9 @@ try
                 .AddParsers(hostContext.Configuration.GetSection("Parsers"))
                 .AddLogging();
 
-                services.AddSingleton(options);
-                services
-                    .AddHostedService<Worker>();
+            services.AddSingleton(options);
+            services
+                .AddHostedService<Worker>();
         })
         .RunConsoleAsync();
 
