@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [linux-x64,osx-x64,osx.11.0-arm64,win-x64]
-        dotnet-version: ['7.0']
+        os: [linux-x64,osx-x64,osx-arm64,win-x64]
+        dotnet-version: ['8.0']
 
     steps:
       - name: Checkout code
@@ -27,10 +27,10 @@ jobs:
         run: dotnet restore
 
       - name: Build application
-        run: dotnet build --configuration Release --output ./jihub-${{ matrix.os }}
+        run: dotnet build --configuration Release
 
       - name: Publish application
-        run: dotnet publish --configuration Release --output ./jihub-${{ matrix.os }} --runtime ${{ matrix.os }}
+        run: dotnet publish --configuration Release --output ./jihub-${{ matrix.os }} --runtime ${{ matrix.os }} --no-self-contained
         
       - name: Archive artifacts
         uses: actions/upload-artifact@v2
