@@ -12,8 +12,8 @@ namespace jihub.Parsers.Jira;
 
 public class JiraParser : IJiraParser
 {
-    private readonly Regex _regex = new(@"!(.+?)!", RegexOptions.Compiled, TimeSpan.FromSeconds(2));
-    private readonly Regex _linkRegex = new(@"\[.{1,255}\](?!\([^)]*\))", RegexOptions.Compiled, TimeSpan.FromSeconds(2));
+    private readonly Regex _regex = new(@"!(.+?)!", RegexOptions.Compiled, TimeSpan.FromSeconds(5));
+    private readonly Regex _linkRegex = new(@"\[.{1,255}\](?!\([^)]*\))", RegexOptions.Compiled, TimeSpan.FromSeconds(5));
 
     private readonly ILogger<JiraParser> _logger;
     private readonly IGithubService _githubService;
@@ -98,7 +98,7 @@ public class JiraParser : IJiraParser
 
         foreach (var groups in _regex.Matches(description).Select(m => m.Groups))
         {
-            var asset = assets.Find(x => groups[1].Value.Contains(x.Name));
+            var asset = assets.Find(x => x.Name.Contains(groups[1].Value.Split("|")[0]));
             if (asset == null)
             {
                 _logger.LogError("Asset {AssetName} couldn't be found", groups[1].Value);
